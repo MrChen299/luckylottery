@@ -281,6 +281,54 @@ body {
 .btn-generate.loading { pointer-events: none; opacity: 0.7; }
 .btn-generate svg { width: 20px; height: 20px; }
 
+/* ============ Lucky Input ============ */
+.lucky-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 180px;
+  max-width: 280px;
+}
+.lucky-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 36px 0 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-card-alt);
+  color: var(--text-primary);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: var(--transition);
+}
+.lucky-input::placeholder {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+.lucky-input:focus {
+  border-color: var(--border-gold);
+  box-shadow: 0 0 12px rgba(212,167,69,0.15);
+}
+.lucky-clear {
+  position: absolute;
+  right: 6px;
+  width: 28px; height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+  opacity: 0;
+  pointer-events: none;
+}
+.lucky-clear.visible { opacity: 1; pointer-events: auto; }
+.lucky-clear:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+
 /* ============ Lottery Balls ============ */
 .ball-display {
   display: flex;
@@ -544,6 +592,7 @@ body {
   .pick-controls { gap: 10px; }
   .btn-generate { width: 100%; justify-content: center; padding: 14px 20px; }
   .count-selector { width: 100%; justify-content: center; }
+  .lucky-input-wrap { flex: none; width: 100%; max-width: none; }
   .ball { width: 38px; height: 38px; font-size: 0.85rem; }
   .ball:hover { transform: scale(1.1); }
   .ticket-group { padding: 16px 14px; }
@@ -589,6 +638,10 @@ body {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
         开始机选
       </button>
+      <div class="lucky-input-wrap">
+        <input type="text" class="lucky-input" id="luckyInput" placeholder="输入幸运字符（可选）" maxlength="30" autocomplete="off" />
+        <button class="lucky-clear" id="luckyClear" onclick="clearLuckyInput()" title="清除">&times;</button>
+      </div>
     </div>
     <div class="strategy-info" id="strategyInfo"></div>
     <div class="ball-display" id="ballDisplay">
@@ -658,6 +711,40 @@ function showToast(msg) {
 function changeCount(delta) {
   pickCount = Math.max(1, Math.min(20, pickCount + delta));
   document.getElementById('countDisplay').textContent = pickCount;
+}
+
+// ============ Lucky Input ============
+function clearLuckyInput() {
+  const input = document.getElementById('luckyInput');
+  input.value = '';
+  updateClearBtn();
+  input.focus();
+}
+
+function updateClearBtn() {
+  const input = document.getElementById('luckyInput');
+  const clearBtn = document.getElementById('luckyClear');
+  clearBtn.classList.toggle('visible', input.value.length > 0);
+}
+
+// ============ Seeded Random ============
+function hashString(str) {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash + str.charCodeAt(i)) | 0;
+  }
+  return hash >>> 0;
+}
+
+function createRNG(seed) {
+  // mulberry32 PRNG — deterministic, high-quality
+  let s = seed | 0;
+  return function () {
+    s = (s + 0x6D2B79F5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
 // ============ Fetch History Data ============
@@ -802,21 +889,21 @@ function analyzeHistory() {
   return { redFreq, redLastSeen, blueFreq, blueLastSeen, totalDraws };
 }
 
-function calculateScore(freq, lastSeen, totalDraws) {
+function calculateScore(freq, lastSeen, totalDraws, rng) {
   // Frequency score: higher frequency = higher score
   const freqScore = freq / totalDraws;
   // Recency score: recently seen = some bonus, long gap = higher chance (gambler's fallacy inspired)
   const recencyScore = lastSeen === totalDraws ? 1.0 : (lastSeen / totalDraws) * 0.8 + 0.2;
   // Combine: 50% frequency (hot numbers), 30% recency (cold has higher chance), 20% random
-  return freqScore * 0.5 + recencyScore * 0.3 + Math.random() * 0.2;
+  return freqScore * 0.5 + recencyScore * 0.3 + rng() * 0.2;
 }
 
-function smartPickReds(analysis, count) {
+function smartPickReds(analysis, count, rng) {
   const { redFreq, redLastSeen, totalDraws } = analysis;
   const candidates = [];
 
   for (let i = 1; i <= 33; i++) {
-    const score = calculateScore(redFreq[i], redLastSeen[i], totalDraws);
+    const score = calculateScore(redFreq[i], redLastSeen[i], totalDraws, rng);
     candidates.push({ num: i, score });
   }
 
@@ -830,7 +917,7 @@ function smartPickReds(analysis, count) {
   while (selected.size < count) {
     const prevSize = selected.size;
     const totalWeight = pool.reduce((sum, c) => sum + c.score, 0);
-    let rand = Math.random() * totalWeight;
+    let rand = rng() * totalWeight;
     for (const c of pool) {
       rand -= c.score;
       if (rand <= 0 && !selected.has(c.num)) {
@@ -852,12 +939,12 @@ function smartPickReds(analysis, count) {
   return [...selected].sort((a, b) => a - b);
 }
 
-function smartPickBlue(analysis) {
+function smartPickBlue(analysis, rng) {
   const { blueFreq, blueLastSeen, totalDraws } = analysis;
   const candidates = [];
 
   for (let i = 1; i <= 16; i++) {
-    const score = calculateScore(blueFreq[i], blueLastSeen[i], totalDraws);
+    const score = calculateScore(blueFreq[i], blueLastSeen[i], totalDraws, rng);
     candidates.push({ num: i, score });
   }
 
@@ -866,7 +953,7 @@ function smartPickBlue(analysis) {
   // Weighted random from top 12
   const pool = candidates.slice(0, 12);
   const totalWeight = pool.reduce((sum, c) => sum + c.score, 0);
-  let rand = Math.random() * totalWeight;
+  let rand = rng() * totalWeight;
   for (const c of pool) {
     rand -= c.score;
     if (rand <= 0) return c.num;
@@ -889,6 +976,21 @@ function generatePicks() {
   btn.classList.add('loading');
   setTimeout(() => btn.classList.remove('loading'), 600);
 
+  // Get lucky seed
+  const luckyStr = document.getElementById('luckyInput').value.trim();
+  updateClearBtn();
+
+  let baseSeed = Date.now();
+  let rng = null;
+  let seedTag = '';
+  if (luckyStr.length > 0) {
+    const hash = hashString(luckyStr);
+    baseSeed = hash;
+    seedTag = `<span class="strategy-badge">🔮 幸运种子：${escapeHtml(luckyStr)}</span>`;
+  } else {
+    seedTag = '<span class="strategy-badge">🔀 随机种子：时间戳</span>';
+  }
+
   const analysis = analyzeHistory();
   if (!analysis) {
     showToast('暂无足够的历史数据进行分析');
@@ -897,8 +999,11 @@ function generatePicks() {
 
   const tickets = [];
   for (let i = 0; i < pickCount; i++) {
-    const reds = smartPickReds(analysis, 6);
-    const blue = smartPickBlue(analysis);
+    // Create a new RNG each iteration with derived seed for independence
+    const stepSeed = baseSeed + i * 911382629;
+    rng = luckyStr.length > 0 ? createRNG(stepSeed) : Math.random;
+    const reds = smartPickReds(analysis, 6, rng);
+    const blue = smartPickBlue(analysis, rng);
     tickets.push({ reds, blue });
   }
 
@@ -917,6 +1022,7 @@ function generatePicks() {
     <span class="strategy-badge">🔥 红球热号：${hotReds.join('、')}</span>
     <span class="strategy-badge">💎 蓝球热号：${hotBlues.join('、')}</span>
     <span class="strategy-badge">🎯 选号策略：热度+冷号加权随机</span>
+    ${seedTag}
   `;
 
   // Render balls
@@ -934,11 +1040,24 @@ function generatePicks() {
   });
 
   display.innerHTML = html;
-  showToast(`已生成 ${pickCount} 注号码`);
+  if (luckyStr.length > 0) {
+    showToast(`已为「${luckyStr}」生成 ${pickCount} 注号码`);
+  } else {
+    showToast(`已生成 ${pickCount} 注号码`);
+  }
+}
+
+function escapeHtml(str) {
+  return str.replace(/[&<>"']/g, function(m) {
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]);
+  });
 }
 
 // ============ Init ============
 document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('luckyInput');
+  input.addEventListener('input', updateClearBtn);
+  updateClearBtn();
   loadHistory();
 });
 </script>
