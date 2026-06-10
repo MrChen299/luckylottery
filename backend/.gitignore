@@ -1,4 +1,5 @@
 .dev.vars
+wrangler_local.toml
 node_modules/
 .wrangler/
 dist/

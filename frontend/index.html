@@ -745,6 +745,149 @@ body {
   min-width: 36px;
 }
 
+/* ============ Win Ticker ============ */
+.win-ticker-section {
+  margin-bottom: 28px;
+  overflow: hidden;
+}
+.win-ticker-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 0.9rem;
+  color: var(--gold-light);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.win-ticker-wrapper {
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  position: relative;
+}
+.win-ticker-wrapper::before,
+.win-ticker-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  z-index: 2;
+  pointer-events: none;
+}
+.win-ticker-wrapper::before {
+  left: 0;
+  background: linear-gradient(90deg, var(--bg-card-alt), transparent);
+}
+.win-ticker-wrapper::after {
+  right: 0;
+  background: linear-gradient(-90deg, var(--bg-card-alt), transparent);
+}
+.win-ticker {
+  display: flex;
+  animation: tickerScroll 30s linear infinite;
+  padding: 12px 0;
+}
+.win-ticker:hover {
+  animation-play-state: paused;
+}
+@keyframes tickerScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.win-ticker-item {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px;
+  border-right: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+.win-ticker-item .username {
+  color: var(--gold-light);
+  font-weight: 500;
+}
+.win-ticker-item .issue {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+.win-ticker-item .prize {
+  color: var(--crimson-light);
+  font-weight: 700;
+}
+.win-ticker-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* ============ Win Card ============ */
+.win-card {
+  background: var(--bg-card-alt);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  border: 1px solid var(--border-subtle);
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.win-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--gold), var(--crimson));
+}
+.win-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.win-card-header .issue {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.win-card-header .prize-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.prize-badge.level-1 { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a1a2e; }
+.prize-badge.level-2 { background: linear-gradient(135deg, #c0c0c0, #a0a0a0); color: #1a1a2e; }
+.prize-badge.level-3 { background: linear-gradient(135deg, #cd7f32, #8b4513); color: #fff; }
+.prize-badge.level-4 { background: var(--blue-accent); color: #fff; }
+.prize-badge.level-5, .prize-badge.level-6 { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-subtle); }
+.win-card .amount {
+  color: var(--crimson-light);
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.win-card .match-info {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.win-card .balls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.win-card .mini-ball {
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  font-size: 0.7rem;
+}
+
 /* ============ Responsive ============ */
 @media (max-width: 640px) {
   .app-container { padding: 28px 16px 60px; }
@@ -791,6 +934,16 @@ body {
     </div>
   </header>
 
+  <!-- ===== Win Ticker ===== -->
+  <div class="win-ticker-section" id="winTickerSection">
+    <div class="win-ticker-title">🏆 全站中奖榜</div>
+    <div class="win-ticker-wrapper">
+      <div class="win-ticker" id="winTicker">
+        <div class="win-ticker-empty">暂无中奖记录</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== Quick Pick Section ===== -->
   <div class="section" id="pickSection">
     <div class="section-title"><span class="dot"></span>智能机选</div>
@@ -822,6 +975,9 @@ body {
     <div class="my-picks-section" id="myPicksSection" style="display:none;">
       <div class="section-title" style="margin-top:28px;"><span class="dot"></span>我的机选记录</div>
       <div id="myPicksDisplay"></div>
+
+      <div class="section-title" style="margin-top:28px;"><span class="dot"></span>我的中奖记录</div>
+      <div id="myWinsDisplay"></div>
     </div>
   </div>
 
@@ -1448,6 +1604,72 @@ function escapeHtml(str) {
   });
 }
 
+// ============ Win Ticker ============
+async function loadPublicWins() {
+  const ticker = document.getElementById('winTicker');
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/wins/public?limit=30`);
+    if (!res.ok) return;
+    const json = await res.json();
+    if (!json.data || json.data.length === 0) {
+      ticker.innerHTML = '<div class="win-ticker-empty">暂无中奖记录</div>';
+      return;
+    }
+
+    // 复制两份实现无缝滚动
+    const items = json.data.map(w => `
+      <div class="win-ticker-item">
+        <span class="username">${w.username}</span>
+        <span class="issue">第${w.issue}期</span>
+        <span class="prize">${w.prizeName} ${w.prizeAmountText}</span>
+      </div>
+    `).join('');
+    ticker.innerHTML = items + items;
+  } catch (err) {
+    console.error('Load public wins error:', err);
+  }
+}
+
+// ============ My Wins ============
+async function loadMyWins() {
+  const container = document.getElementById('myWinsDisplay');
+  if (!isLoggedIn()) { container.innerHTML = ''; return; }
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/wins/mine?page=1&limit=20`, {
+      headers: { 'Authorization': `Bearer ${authToken}` },
+    });
+    if (!res.ok) { container.innerHTML = ''; return; }
+    const json = await res.json();
+    if (!json.data || json.data.length === 0) {
+      container.innerHTML = '<div class="empty-state"><p>暂无中奖记录</p></div>';
+      return;
+    }
+
+    let html = '';
+    json.data.forEach(w => {
+      html += `<div class="win-card">
+        <div class="win-card-header">
+          <span class="issue">第${w.issue}期</span>
+          <span class="prize-badge level-${w.prizeLevel}">${w.prizeName}</span>
+        </div>
+        <div class="amount">奖金：${w.prizeAmountText}</div>
+        <div class="match-info">命中：${w.redMatch}红+${w.blueMatch}蓝</div>
+        <div class="balls-row">
+          <span style="font-size:0.75rem;color:var(--text-muted);margin-right:4px;">选号:</span>`;
+      w.reds.forEach(r => {
+        html += `<span class="mini-ball mini-ball-red">${String(r).padStart(2, '0')}</span>`;
+      });
+      html += '+';
+      html += `<span class="mini-ball mini-ball-blue">${String(w.blue).padStart(2, '0')}</span>`;
+      html += '</div></div>';
+    });
+    container.innerHTML = html;
+  } catch (err) {
+    console.error('Load my wins error:', err);
+  }
+}
+
 // ============ Init ============
 document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('luckyInput');
@@ -1458,9 +1680,11 @@ document.addEventListener('DOMContentLoaded', () => {
   updateUserUI();
   if (isLoggedIn()) {
     loadMyPicks();
+    loadMyWins();
   }
 
   loadHistory();
+  loadPublicWins();
 });
 </script>
 </body>

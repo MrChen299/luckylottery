@@ -6,6 +6,11 @@ compatibility_date = "2025-06-07"
 binding = "DB"
 database_name = "lottery-db"
 
+# Cron Trigger: 每天晚上 22:00（北京时间）检查中奖
+# 双色球开奖时间：周二、四、日 21:15
+[triggers]
+crons = ["0 14 * * *"]  # UTC 14:00 = 北京时间 22:00
+
 [observability]
 enabled = false
 head_sampling_rate = 1
