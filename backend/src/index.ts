@@ -8,7 +8,7 @@ import { scheduledHandler } from './scheduled/checkWins';
 export type Env = {
   DB: D1Database;
   JWT_SECRET: string;
-  FRONTEND_URL: string;
+  CORS_ORIGIN: string;
 };
 
 const app = new Hono<{ Bindings: Env }>();
@@ -16,7 +16,7 @@ const app = new Hono<{ Bindings: Env }>();
 // CORS middleware
 app.use('*', cors({
   origin: (origin, c) => {
-    const allowed = c.env.FRONTEND_URL;
+    const allowed = c.env.CORS_ORIGIN;
     if (allowed === '*') return '*';
     return allowed;
   },
