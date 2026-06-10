@@ -863,7 +863,7 @@ body {
 .prize-badge.level-2 { background: linear-gradient(135deg, #c0c0c0, #a0a0a0); color: #1a1a2e; }
 .prize-badge.level-3 { background: linear-gradient(135deg, #cd7f32, #8b4513); color: #fff; }
 .prize-badge.level-4 { background: var(--blue-accent); color: #fff; }
-.prize-badge.level-5, .prize-badge.level-6 { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-subtle); }
+.prize-badge.level-5, .prize-badge.level-6, .prize-badge.level-7 { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-subtle); }
 .win-card .amount {
   color: var(--crimson-light);
   font-size: 1.1rem;
@@ -1026,7 +1026,7 @@ body {
 
 <script>
 // ============ Config ============
-const BACKEND_URL = '__BACKEND_URL__'; // 构建时由环境变量注入
+const BACKEND_URL = 'http://localhost:8787'; // 构建时由环境变量注入
 
 // ============ State ============
 let historyData = [];
