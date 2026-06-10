@@ -6,14 +6,18 @@ import picksRoutes from './routes/picks';
 export type Env = {
   DB: D1Database;
   JWT_SECRET: string;
-  BACKEND_URL: string;
+  FRONTEND_URL: string;
 };
 
 const app = new Hono<{ Bindings: Env }>();
 
 // CORS middleware
 app.use('*', cors({
-  origin: (origin, c) => c.env.BACKEND_URL,
+  origin: (origin, c) => {
+    const allowed = c.env.FRONTEND_URL;
+    if (allowed === '*') return '*';
+    return allowed;
+  },
   allowMethods: ['GET', 'POST', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
   maxAge: 86400,
