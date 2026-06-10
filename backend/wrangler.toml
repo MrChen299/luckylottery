@@ -1,0 +1,26 @@
+name = "luckylottery-backend"
+main = "src/index.ts"
+compatibility_date = "2025-06-07"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lottery-db"
+database_id = "a4444a03-950f-4a90-9163-0a02c0b32849"
+
+[vars]
+CORS_ORIGIN = "*"
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1

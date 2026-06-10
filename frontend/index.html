@@ -581,6 +581,170 @@ body {
 }
 .footer a { color: var(--gold); text-decoration: none; }
 
+/* ============ Auth Modal ============ */
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+.auth-overlay.active { opacity: 1; pointer-events: auto; }
+.auth-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  position: relative;
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+}
+.auth-overlay.active .auth-modal { transform: translateY(0); }
+.auth-modal-close {
+  position: absolute;
+  top: 12px; right: 16px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.auth-modal-close:hover { color: var(--text-primary); }
+.auth-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.auth-tab {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: var(--transition);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.auth-tab.active { color: var(--gold-light); border-bottom-color: var(--gold); }
+.auth-form { display: none; flex-direction: column; gap: 16px; }
+.auth-form.active { display: flex; }
+.auth-input {
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-card-alt);
+  color: var(--text-primary);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: var(--transition);
+}
+.auth-input::placeholder { color: var(--text-muted); }
+.auth-input:focus { border-color: var(--border-gold); }
+.auth-error {
+  color: var(--crimson-light);
+  font-size: 0.82rem;
+  min-height: 1.2em;
+}
+.auth-submit {
+  height: 44px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: #1a1a2e;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.auth-submit:hover { opacity: 0.9; }
+.auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ============ User Menu ============ */
+.user-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.user-name {
+  color: var(--gold-light);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+.btn-auth {
+  padding: 8px 20px;
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--gold-light);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn-auth:hover { background: rgba(212, 167, 69, 0.12); }
+.btn-logout {
+  padding: 8px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn-logout:hover { color: var(--crimson-light); border-color: var(--crimson-light); }
+
+/* ============ Pick History ============ */
+.history-card {
+  background: var(--bg-card-alt);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  border: 1px solid var(--border-subtle);
+  margin-bottom: 12px;
+}
+.history-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+.history-card-header strong { color: var(--text-primary); font-family: 'Noto Serif SC', serif; }
+.history-card .mini-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.history-card .mini-row .ticket-index {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  margin-right: 4px;
+  min-width: 36px;
+}
+
 /* ============ Responsive ============ */
 @media (max-width: 640px) {
   .app-container { padding: 28px 16px 60px; }
@@ -622,6 +786,9 @@ body {
     </div>
     <h1>双色球 · 智能机选</h1>
     <p class="subtitle">基于历史数据 · 策略选号</p>
+    <div class="user-area" id="userArea">
+      <button class="btn-auth" onclick="openAuth()">登录 / 注册</button>
+    </div>
   </header>
 
   <!-- ===== Quick Pick Section ===== -->
@@ -650,6 +817,12 @@ body {
         <p>点击「开始机选」生成幸运号码</p>
       </div>
     </div>
+
+    <!-- ===== My Picks History ===== -->
+    <div class="my-picks-section" id="myPicksSection" style="display:none;">
+      <div class="section-title" style="margin-top:28px;"><span class="dot"></span>我的机选记录</div>
+      <div id="myPicksDisplay"></div>
+    </div>
   </div>
 
   <!-- ===== History Section ===== -->
@@ -672,12 +845,42 @@ body {
 
 <div class="toast" id="toast"></div>
 
+<!-- ===== Auth Modal ===== -->
+<div class="auth-overlay" id="authOverlay" onclick="closeAuthOutside(event)">
+  <div class="auth-modal" onclick="event.stopPropagation()">
+    <button class="auth-modal-close" onclick="closeAuth()">&times;</button>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login" onclick="switchAuthTab('login')">登录</button>
+      <button class="auth-tab" data-tab="register" onclick="switchAuthTab('register')">注册</button>
+    </div>
+    <form class="auth-form active" id="loginForm" onsubmit="handleLogin(event)">
+      <input class="auth-input" type="text" id="loginUsername" placeholder="用户名" required />
+      <input class="auth-input" type="password" id="loginPassword" placeholder="密码" required />
+      <span class="auth-error" id="loginError"></span>
+      <button class="auth-submit" type="submit">登录</button>
+    </form>
+    <form class="auth-form" id="registerForm" onsubmit="handleRegister(event)">
+      <input class="auth-input" type="text" id="regUsername" placeholder="用户名（2-20位中英文数字下划线）" required />
+      <input class="auth-input" type="password" id="regPassword" placeholder="密码（6-50位）" required />
+      <span class="auth-error" id="regError"></span>
+      <button class="auth-submit" type="submit">注册</button>
+    </form>
+  </div>
+</div>
+
 <script>
+// ============ Config ============
+const BACKEND_URL = 'https://luckylottery-backend.xingyuchen299.workers.dev'; // 本地开发；部署后改为 Workers 域名
+
 // ============ State ============
 let historyData = [];
 let pickCount = 5;
 let isLoadingHistory = true;
 let historyLoadError = null;
+
+// Auth state
+let authToken = localStorage.getItem('lottery_token') || '';
+let currentUser = localStorage.getItem('lottery_username') || '';
 
 // ============ Background Particles ============
 (function initParticles() {
@@ -725,6 +928,189 @@ function updateClearBtn() {
   const input = document.getElementById('luckyInput');
   const clearBtn = document.getElementById('luckyClear');
   clearBtn.classList.toggle('visible', input.value.length > 0);
+}
+
+// ============ Auth ============
+function isLoggedIn() { return !!authToken; }
+
+function openAuth() {
+  document.getElementById('authOverlay').classList.add('active');
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('regError').textContent = '';
+}
+
+function closeAuth() {
+  document.getElementById('authOverlay').classList.remove('active');
+}
+
+function closeAuthOutside(e) {
+  if (e.target === document.getElementById('authOverlay')) closeAuth();
+}
+
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('loginForm').classList.toggle('active', tab === 'login');
+  document.getElementById('registerForm').classList.toggle('active', tab === 'register');
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('regError').textContent = '';
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+
+  if (!username || !password) { errEl.textContent = '请填写用户名和密码'; return; }
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || '登录失败'; return; }
+
+    authToken = data.token;
+    currentUser = data.username;
+    localStorage.setItem('lottery_token', authToken);
+    localStorage.setItem('lottery_username', currentUser);
+    updateUserUI();
+    closeAuth();
+    showToast(`欢迎回来，${currentUser}`);
+    loadMyPicks();
+  } catch (err) {
+    errEl.textContent = '网络错误，请稍后重试';
+  }
+}
+
+async function handleRegister(e) {
+  e.preventDefault();
+  const username = document.getElementById('regUsername').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const errEl = document.getElementById('regError');
+
+  if (!username || !password) { errEl.textContent = '请填写用户名和密码'; return; }
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || '注册失败'; return; }
+
+    showToast('注册成功，请登录');
+    switchAuthTab('login');
+    document.getElementById('loginUsername').value = username;
+    document.getElementById('loginPassword').value = '';
+  } catch (err) {
+    errEl.textContent = '网络错误，请稍后重试';
+  }
+}
+
+function logout() {
+  authToken = '';
+  currentUser = '';
+  localStorage.removeItem('lottery_token');
+  localStorage.removeItem('lottery_username');
+  updateUserUI();
+  showToast('已退出登录');
+  document.getElementById('myPicksDisplay').innerHTML = '';
+}
+
+function updateUserUI() {
+  const area = document.getElementById('userArea');
+  const picksSection = document.getElementById('myPicksSection');
+  if (isLoggedIn()) {
+    area.innerHTML = `
+      <span class="user-name">👤 ${currentUser}</span>
+      <button class="btn-logout" onclick="logout()">退出</button>`;
+    picksSection.style.display = 'block';
+  } else {
+    area.innerHTML = '<button class="btn-auth" onclick="openAuth()">登录 / 注册</button>';
+    picksSection.style.display = 'none';
+  }
+}
+
+// ============ Fetch current issue ============
+function getLatestIssue() {
+  if (historyData.length === 0) return '';
+  // The latest item in historyData is the most recent draw
+  // API returns items newest first. We need the next issue number.
+  // huiniao.top's last.next_code is the upcoming issue
+  // Since we don't fetch `last` from the list, we calculate it:
+  // The latest result's code + 1 (rough approximation)
+  const latest = historyData[0];
+  if (!latest || !latest.issue) return '';
+  const issueNum = parseInt(latest.issue, 10);
+  if (isNaN(issueNum)) return '';
+  return String(issueNum + 1);
+}
+
+// ============ Pick History ============
+async function loadMyPicks() {
+  const container = document.getElementById('myPicksDisplay');
+  if (!isLoggedIn()) { container.innerHTML = ''; return; }
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/picks?page=1&limit=10`, {
+      headers: { 'Authorization': `Bearer ${authToken}` },
+    });
+    if (!res.ok) { container.innerHTML = ''; return; }
+    const json = await res.json();
+    if (!json.data || json.data.length === 0) {
+      container.innerHTML = '<div class="empty-state"><p>暂无历史机选记录</p></div>';
+      return;
+    }
+
+    let html = '';
+    json.data.forEach(batch => {
+      html += `<div class="history-card">
+        <div class="history-card-header">
+          <span><strong>第${batch.issue}期</strong> · ${batch.tickets.length}注</span>
+          <span>${batch.createdAt?.slice(0, 10) || ''}${batch.luckySeed ? ' · 🔮' + batch.luckySeed : ''}</span>
+        </div>`;
+      batch.tickets.forEach((t, i) => {
+        html += '<div class="mini-row"><span class="ticket-index">第' + (i + 1) + '注</span>';
+        t.reds.forEach(r => {
+          html += `<span class="mini-ball mini-ball-red">${String(r).padStart(2, '0')}</span>`;
+        });
+        html += '+';
+        html += `<span class="mini-ball mini-ball-blue">${String(t.blue).padStart(2, '0')}</span>`;
+        html += '</div>';
+      });
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  } catch (err) {
+    console.error('Load picks error:', err);
+  }
+}
+
+// ============ Save Picks to Backend ============
+async function savePicksToBackend(tickets, luckySeed) {
+  const issue = getLatestIssue();
+  if (!issue) { showToast('无法确定当前期号，结果未保存'); return; }
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/picks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ issue, tickets, luckySeed: luckySeed || undefined }),
+    });
+    if (res.ok) {
+      // Reload pick history
+      setTimeout(() => loadMyPicks(), 500);
+    }
+  } catch (err) {
+    console.error('Save picks error:', err);
+  }
 }
 
 // ============ Seeded Random ============
@@ -967,6 +1353,12 @@ function generatePicks() {
   const display = document.getElementById('ballDisplay');
   const strategyInfo = document.getElementById('strategyInfo');
 
+  if (!isLoggedIn()) {
+    showToast('请先登录后再使用机选功能');
+    openAuth();
+    return;
+  }
+
   if (historyData.length === 0) {
     showToast('请先等待历史数据加载完成');
     return;
@@ -1045,6 +1437,9 @@ function generatePicks() {
   } else {
     showToast(`已生成 ${pickCount} 注号码`);
   }
+
+  // Save to backend
+  savePicksToBackend(tickets, luckyStr.length > 0 ? luckyStr : undefined);
 }
 
 function escapeHtml(str) {
@@ -1058,6 +1453,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('luckyInput');
   input.addEventListener('input', updateClearBtn);
   updateClearBtn();
+
+  // Restore auth state
+  updateUserUI();
+  if (isLoggedIn()) {
+    loadMyPicks();
+  }
+
   loadHistory();
 });
 </script>
