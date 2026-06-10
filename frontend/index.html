@@ -765,44 +765,45 @@ body {
   border-radius: var(--radius-md);
   overflow: hidden;
   position: relative;
+  height: 200px;
 }
 .win-ticker-wrapper::before,
 .win-ticker-wrapper::after {
   content: '';
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 40px;
+  left: 0;
+  right: 0;
+  height: 30px;
   z-index: 2;
   pointer-events: none;
 }
 .win-ticker-wrapper::before {
-  left: 0;
-  background: linear-gradient(90deg, var(--bg-card-alt), transparent);
+  top: 0;
+  background: linear-gradient(180deg, var(--bg-card-alt), transparent);
 }
 .win-ticker-wrapper::after {
-  right: 0;
-  background: linear-gradient(-90deg, var(--bg-card-alt), transparent);
+  bottom: 0;
+  background: linear-gradient(0deg, var(--bg-card-alt), transparent);
 }
 .win-ticker {
   display: flex;
-  animation: tickerScroll 30s linear infinite;
-  padding: 12px 0;
+  flex-direction: column;
+  animation: tickerScrollV 30s linear infinite;
+  padding: 0 12px;
 }
 .win-ticker:hover {
   animation-play-state: paused;
 }
-@keyframes tickerScroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+@keyframes tickerScrollV {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
 }
 .win-ticker-item {
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 24px;
-  border-right: 1px solid var(--border-subtle);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-subtle);
   white-space: nowrap;
 }
 .win-ticker-item .username {
@@ -888,6 +889,100 @@ body {
   font-size: 0.7rem;
 }
 
+/* ============ Main Tabs ============ */
+.main-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.main-tab {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: var(--transition);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.main-tab.active {
+  color: var(--gold-light);
+  border-bottom-color: var(--gold);
+}
+.tab-content {
+  display: none;
+}
+.tab-content.active {
+  display: block;
+}
+
+/* ============ Issue Group ============ */
+.issue-group {
+  margin-bottom: 20px;
+}
+.issue-group-header {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--gold-light);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-gold);
+}
+.batch-card {
+  background: var(--bg-card-alt);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border-subtle);
+}
+.batch-label {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+/* ============ Session Expired Modal ============ */
+.session-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.session-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  padding: 32px 28px;
+  text-align: center;
+  max-width: 360px;
+  width: 90%;
+}
+.session-modal p {
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+}
+.session-modal button {
+  padding: 10px 32px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: #1a1a2e;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 /* ============ Responsive ============ */
 @media (max-width: 640px) {
   .app-container { padding: 28px 16px 60px; }
@@ -913,6 +1008,94 @@ body {
 
 @media (min-width: 1024px) {
   .app-container { max-width: 900px; }
+}
+
+/* ============ Pagination ============ */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 20px 0 8px;
+  margin-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+.page-btn {
+  min-width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+.page-btn:hover:not(:disabled) {
+  border-color: var(--border-gold);
+  color: var(--gold-light);
+  background: rgba(212,167,69,0.08);
+}
+.page-btn.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #1a1a2e;
+  font-weight: 600;
+}
+.page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.page-ellipsis {
+  color: var(--text-muted);
+  padding: 0 4px;
+  font-size: 0.85rem;
+}
+.page-jump {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.page-input {
+  width: 48px;
+  height: 28px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  background: var(--bg-card-alt);
+  color: var(--text-primary);
+  text-align: center;
+  font-size: 0.82rem;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.page-input::-webkit-outer-spin-button,
+.page-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.page-size-select {
+  height: 28px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  background: var(--bg-card-alt);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  outline: none;
+  cursor: pointer;
+  margin-left: 8px;
+}
+.page-info {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  margin-left: 8px;
 }
 </style>
 </head>
@@ -944,51 +1127,67 @@ body {
     </div>
   </div>
 
-  <!-- ===== Quick Pick Section ===== -->
-  <div class="section" id="pickSection">
-    <div class="section-title"><span class="dot"></span>智能机选</div>
-    <div class="pick-controls">
-      <div class="count-selector">
-        <button class="count-btn" onclick="changeCount(-1)" aria-label="减少注数">−</button>
-        <span class="count-value" id="countDisplay">5</span>
-        <span class="count-label">注</span>
-        <button class="count-btn" onclick="changeCount(1)" aria-label="增加注数">+</button>
+  <!-- ===== Tab Navigation ===== -->
+  <div class="main-tabs">
+    <button class="main-tab active" data-tab="pick" onclick="switchMainTab('pick')">智能机选</button>
+    <button class="main-tab" data-tab="mypicks" onclick="switchMainTab('mypicks')">我的机选记录</button>
+    <button class="main-tab" data-tab="mywins" onclick="switchMainTab('mywins')">我的中奖记录</button>
+  </div>
+
+  <!-- ===== Tab: 智能机选 ===== -->
+  <div class="tab-content active" id="tabPick">
+    <div class="section" id="pickSection">
+      <div class="section-title"><span class="dot"></span>智能机选</div>
+      <div class="pick-controls">
+        <div class="count-selector">
+          <button class="count-btn" onclick="changeCount(-1)" aria-label="减少注数">−</button>
+          <span class="count-value" id="countDisplay">5</span>
+          <span class="count-label">注</span>
+          <button class="count-btn" onclick="changeCount(1)" aria-label="增加注数">+</button>
+        </div>
+        <button class="btn-generate" id="btnGenerate" onclick="generatePicks()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          开始机选
+        </button>
+        <div class="lucky-input-wrap">
+          <input type="text" class="lucky-input" id="luckyInput" placeholder="输入幸运字符（可选）" maxlength="30" autocomplete="off" />
+          <button class="lucky-clear" id="luckyClear" onclick="clearLuckyInput()" title="清除">&times;</button>
+        </div>
       </div>
-      <button class="btn-generate" id="btnGenerate" onclick="generatePicks()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-        开始机选
-      </button>
-      <div class="lucky-input-wrap">
-        <input type="text" class="lucky-input" id="luckyInput" placeholder="输入幸运字符（可选）" maxlength="30" autocomplete="off" />
-        <button class="lucky-clear" id="luckyClear" onclick="clearLuckyInput()" title="清除">&times;</button>
-      </div>
-    </div>
-    <div class="strategy-info" id="strategyInfo"></div>
-    <div class="ball-display" id="ballDisplay">
-      <div class="empty-state">
-        <div class="empty-state-icon">🎱</div>
-        <p>点击「开始机选」生成幸运号码</p>
+      <div class="strategy-info" id="strategyInfo"></div>
+      <div class="ball-display" id="ballDisplay">
+        <div class="empty-state">
+          <div class="empty-state-icon">🎱</div>
+          <p>点击「开始机选」生成幸运号码</p>
+        </div>
       </div>
     </div>
 
-    <!-- ===== My Picks History ===== -->
-    <div class="my-picks-section" id="myPicksSection" style="display:none;">
-      <div class="section-title" style="margin-top:28px;"><span class="dot"></span>我的机选记录</div>
-      <div id="myPicksDisplay"></div>
-
-      <div class="section-title" style="margin-top:28px;"><span class="dot"></span>我的中奖记录</div>
-      <div id="myWinsDisplay"></div>
+    <!-- ===== History Section ===== -->
+    <div class="section" id="historySection">
+      <div class="section-title"><span class="dot"></span>近50期开奖结果</div>
+      <div id="historyContent">
+        <div class="loading-overlay">
+          <div class="spinner"></div>
+          <span class="loading-text">正在获取开奖数据...</span>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- ===== History Section ===== -->
-  <div class="section" id="historySection">
-    <div class="section-title"><span class="dot"></span>近50期开奖结果</div>
-    <div id="historyContent">
-      <div class="loading-overlay">
-        <div class="spinner"></div>
-        <span class="loading-text">正在获取开奖数据...</span>
-      </div>
+  <!-- ===== Tab: 我的机选记录 ===== -->
+  <div class="tab-content" id="tabMyPicks">
+    <div class="section">
+      <div class="section-title"><span class="dot"></span>我的机选记录</div>
+      <div id="myPicksDisplay"></div>
+    </div>
+  </div>
+
+  <!-- ===== Tab: 我的中奖记录 ===== -->
+  <div class="tab-content" id="tabMyWins">
+    <div class="section">
+      <div class="section-title"><span class="dot"></span>我的中奖记录</div>
+      <div id="myWinsDisplay"></div>
     </div>
   </div>
 
@@ -1089,6 +1288,42 @@ function updateClearBtn() {
 // ============ Auth ============
 function isLoggedIn() { return !!authToken; }
 
+async function authFetch(url, options = {}) {
+  const res = await fetch(url, options);
+  if (res.status === 401) {
+    showSessionExpiredModal();
+    throw new Error('SESSION_EXPIRED');
+  }
+  return res;
+}
+
+function showSessionExpiredModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'session-modal-overlay';
+  overlay.innerHTML = `
+    <div class="session-modal">
+      <p>登录已过期，请重新登录</p>
+      <button onclick="this.closest('.session-modal-overlay').remove(); logout();">确认</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+function switchMainTab(tab) {
+  document.querySelectorAll('.main-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  const tabIdMap = { pick: 'tabPick', mypicks: 'tabMyPicks', mywins: 'tabMyWins' };
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === tabIdMap[tab]));
+
+  if (tab === 'mypicks') {
+    if (isLoggedIn()) { loadMyPicks(); }
+    else { showToast('请先登录后查看机选记录'); openAuth(); }
+  }
+  if (tab === 'mywins') {
+    if (isLoggedIn()) { loadMyWins(); }
+    else { showToast('请先登录后查看中奖记录'); openAuth(); }
+  }
+}
+
 function openAuth() {
   document.getElementById('authOverlay').classList.add('active');
   document.getElementById('loginError').textContent = '';
@@ -1135,7 +1370,6 @@ async function handleLogin(e) {
     updateUserUI();
     closeAuth();
     showToast(`欢迎回来，${currentUser}`);
-    loadMyPicks();
   } catch (err) {
     errEl.textContent = '网络错误，请稍后重试';
   }
@@ -1175,19 +1409,18 @@ function logout() {
   updateUserUI();
   showToast('已退出登录');
   document.getElementById('myPicksDisplay').innerHTML = '';
+  document.getElementById('myWinsDisplay').innerHTML = '';
+  switchMainTab('pick');
 }
 
 function updateUserUI() {
   const area = document.getElementById('userArea');
-  const picksSection = document.getElementById('myPicksSection');
   if (isLoggedIn()) {
     area.innerHTML = `
       <span class="user-name">👤 ${currentUser}</span>
       <button class="btn-logout" onclick="logout()">退出</button>`;
-    picksSection.style.display = 'block';
   } else {
     area.innerHTML = '<button class="btn-auth" onclick="openAuth()">登录 / 注册</button>';
-    picksSection.style.display = 'none';
   }
 }
 
@@ -1207,43 +1440,118 @@ function getLatestIssue() {
 }
 
 // ============ Pick History ============
+let picksPage = 1;
+let picksPageSize = 20;
+let picksTotal = 0;
+
+function renderPicksData(data) {
+  const issueGroups = {};
+  const issueOrder = [];
+  data.forEach(batch => {
+    if (!issueGroups[batch.issue]) {
+      issueGroups[batch.issue] = [];
+      issueOrder.push(batch.issue);
+    }
+    issueGroups[batch.issue].push(batch);
+  });
+
+  let html = '';
+  issueOrder.forEach(issue => {
+    const batches = issueGroups[issue];
+    const totalBatches = batches.length;
+    html += `<div class="issue-group">
+      <div class="issue-group-header">第${issue}期</div>`;
+    batches.forEach((batch, batchIdx) => {
+      const batchNum = totalBatches - batchIdx;
+      html += `<div class="batch-card">
+        <div class="batch-label">批次${batchNum}${batch.luckySeed ? ' · 🔮' + escapeHtml(batch.luckySeed) : ''} · ${batch.createdAt?.slice(0,10) || ''}</div>`;
+      batch.tickets.forEach((t, i) => {
+        html += '<div class="mini-row"><span class="ticket-index">第' + (i+1) + '注</span>';
+        t.reds.forEach(r => {
+          html += `<span class="mini-ball mini-ball-red">${String(r).padStart(2,'0')}</span>`;
+        });
+        html += '+';
+        html += `<span class="mini-ball mini-ball-blue">${String(t.blue).padStart(2,'0')}</span>`;
+        html += '</div>';
+      });
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  return html;
+}
+
+function renderPicksPagination() {
+  const totalPages = Math.max(1, Math.ceil(picksTotal / picksPageSize));
+  const current = Math.min(picksPage, totalPages);
+  let pages = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (current > 3) pages.push('...');
+    for (let i = Math.max(2, current - 1); i <= Math.min(totalPages - 1, current + 1); i++) pages.push(i);
+    if (current < totalPages - 2) pages.push('...');
+    pages.push(totalPages);
+  }
+
+  let html = '<div class="pagination">';
+  html += `<button class="page-btn" onclick="goPicksPage(1)" ${current <= 1 ? 'disabled' : ''}>&laquo;</button>`;
+  html += `<button class="page-btn" onclick="goPicksPage(${current - 1})" ${current <= 1 ? 'disabled' : ''}>&lsaquo;</button>`;
+  pages.forEach(p => {
+    if (p === '...') {
+      html += '<span class="page-ellipsis">...</span>';
+    } else {
+      html += `<button class="page-btn${p === current ? ' active' : ''}" onclick="goPicksPage(${p})">${p}</button>`;
+    }
+  });
+  html += `<button class="page-btn" onclick="goPicksPage(${current + 1})" ${current >= totalPages ? 'disabled' : ''}>&rsaquo;</button>`;
+  html += `<button class="page-btn" onclick="goPicksPage(${totalPages})" ${current >= totalPages ? 'disabled' : ''}>&raquo;</button>`;
+  html += '<span class="page-jump">跳至 <input type="number" class="page-input" id="picksPageInput" min="1" max="' + totalPages + '" value="' + current + '" onkeydown="if(event.key===\'Enter\')goPicksPage(Number(this.value))" /> 页</span>';
+  html += '<select class="page-size-select" onchange="changePicksPageSize(Number(this.value))">';
+  [10, 20, 50, 100].forEach(s => {
+    html += `<option value="${s}" ${s === picksPageSize ? 'selected' : ''}>${s}条/页</option>`;
+  });
+  html += '</select>';
+  html += `<span class="page-info">共 ${picksTotal} 条</span>`;
+  html += '</div>';
+  return html;
+}
+
 async function loadMyPicks() {
   const container = document.getElementById('myPicksDisplay');
   if (!isLoggedIn()) { container.innerHTML = ''; return; }
 
   try {
-    const res = await fetch(`${BACKEND_URL}/api/picks?page=1&limit=10`, {
+    const res = await authFetch(`${BACKEND_URL}/api/picks?page=${picksPage}&limit=${picksPageSize}`, {
       headers: { 'Authorization': `Bearer ${authToken}` },
     });
-    if (!res.ok) { container.innerHTML = ''; return; }
+    if (res.status === 401) return;
     const json = await res.json();
+    picksTotal = json.total || 0;
+
     if (!json.data || json.data.length === 0) {
       container.innerHTML = '<div class="empty-state"><p>暂无历史机选记录</p></div>';
       return;
     }
 
-    let html = '';
-    json.data.forEach(batch => {
-      html += `<div class="history-card">
-        <div class="history-card-header">
-          <span><strong>第${batch.issue}期</strong> · ${batch.tickets.length}注</span>
-          <span>${batch.createdAt?.slice(0, 10) || ''}${batch.luckySeed ? ' · 🔮' + batch.luckySeed : ''}</span>
-        </div>`;
-      batch.tickets.forEach((t, i) => {
-        html += '<div class="mini-row"><span class="ticket-index">第' + (i + 1) + '注</span>';
-        t.reds.forEach(r => {
-          html += `<span class="mini-ball mini-ball-red">${String(r).padStart(2, '0')}</span>`;
-        });
-        html += '+';
-        html += `<span class="mini-ball mini-ball-blue">${String(t.blue).padStart(2, '0')}</span>`;
-        html += '</div>';
-      });
-      html += '</div>';
-    });
-    container.innerHTML = html;
+    container.innerHTML = renderPicksData(json.data) + renderPicksPagination();
   } catch (err) {
+    if (err.message === 'SESSION_EXPIRED') return;
     console.error('Load picks error:', err);
   }
+}
+
+function goPicksPage(page) {
+  const totalPages = Math.max(1, Math.ceil(picksTotal / picksPageSize));
+  picksPage = Math.max(1, Math.min(totalPages, page));
+  loadMyPicks();
+}
+
+function changePicksPageSize(size) {
+  picksPageSize = Math.min(100, Math.max(1, size));
+  picksPage = 1;
+  loadMyPicks();
 }
 
 // ============ Save Picks to Backend ============
@@ -1252,7 +1560,7 @@ async function savePicksToBackend(tickets, luckySeed) {
   if (!issue) { showToast('无法确定当前期号，结果未保存'); return; }
 
   try {
-    const res = await fetch(`${BACKEND_URL}/api/picks`, {
+    const res = await authFetch(`${BACKEND_URL}/api/picks`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1261,10 +1569,14 @@ async function savePicksToBackend(tickets, luckySeed) {
       body: JSON.stringify({ issue, tickets, luckySeed: luckySeed || undefined }),
     });
     if (res.ok) {
-      // Reload pick history
-      setTimeout(() => loadMyPicks(), 500);
+      // Reload pick history if on mypicks tab
+      const myPicksTab = document.getElementById('tabMyPicks');
+      if (myPicksTab.classList.contains('active')) {
+        setTimeout(() => loadMyPicks(), 500);
+      }
     }
   } catch (err) {
+    if (err.message === 'SESSION_EXPIRED') return;
     console.error('Save picks error:', err);
   }
 }
@@ -1631,23 +1943,27 @@ async function loadPublicWins() {
 }
 
 // ============ My Wins ============
-async function loadMyWins() {
-  const container = document.getElementById('myWinsDisplay');
-  if (!isLoggedIn()) { container.innerHTML = ''; return; }
+let winsPage = 1;
+let winsPageSize = 20;
+let winsTotal = 0;
 
-  try {
-    const res = await fetch(`${BACKEND_URL}/api/wins/mine?page=1&limit=20`, {
-      headers: { 'Authorization': `Bearer ${authToken}` },
-    });
-    if (!res.ok) { container.innerHTML = ''; return; }
-    const json = await res.json();
-    if (!json.data || json.data.length === 0) {
-      container.innerHTML = '<div class="empty-state"><p>暂无中奖记录</p></div>';
-      return;
+function renderWinsData(data) {
+  const issueGroups = {};
+  const issueOrder = [];
+  data.forEach(w => {
+    if (!issueGroups[w.issue]) {
+      issueGroups[w.issue] = [];
+      issueOrder.push(w.issue);
     }
+    issueGroups[w.issue].push(w);
+  });
 
-    let html = '';
-    json.data.forEach(w => {
+  let html = '';
+  issueOrder.forEach(issue => {
+    const wins = issueGroups[issue];
+    html += `<div class="issue-group">
+      <div class="issue-group-header">第${issue}期</div>`;
+    wins.forEach(w => {
       html += `<div class="win-card">
         <div class="win-card-header">
           <span class="issue">第${w.issue}期</span>
@@ -1664,10 +1980,82 @@ async function loadMyWins() {
       html += `<span class="mini-ball mini-ball-blue">${String(w.blue).padStart(2, '0')}</span>`;
       html += '</div></div>';
     });
-    container.innerHTML = html;
+    html += '</div>';
+  });
+  return html;
+}
+
+function renderWinsPagination() {
+  const totalPages = Math.max(1, Math.ceil(winsTotal / winsPageSize));
+  const current = Math.min(winsPage, totalPages);
+  let pages = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (current > 3) pages.push('...');
+    for (let i = Math.max(2, current - 1); i <= Math.min(totalPages - 1, current + 1); i++) pages.push(i);
+    if (current < totalPages - 2) pages.push('...');
+    pages.push(totalPages);
+  }
+
+  let html = '<div class="pagination">';
+  html += `<button class="page-btn" onclick="goWinsPage(1)" ${current <= 1 ? 'disabled' : ''}>&laquo;</button>`;
+  html += `<button class="page-btn" onclick="goWinsPage(${current - 1})" ${current <= 1 ? 'disabled' : ''}>&lsaquo;</button>`;
+  pages.forEach(p => {
+    if (p === '...') {
+      html += '<span class="page-ellipsis">...</span>';
+    } else {
+      html += `<button class="page-btn${p === current ? ' active' : ''}" onclick="goWinsPage(${p})">${p}</button>`;
+    }
+  });
+  html += `<button class="page-btn" onclick="goWinsPage(${current + 1})" ${current >= totalPages ? 'disabled' : ''}>&rsaquo;</button>`;
+  html += `<button class="page-btn" onclick="goWinsPage(${totalPages})" ${current >= totalPages ? 'disabled' : ''}>&raquo;</button>`;
+  html += '<span class="page-jump">跳至 <input type="number" class="page-input" id="winsPageInput" min="1" max="' + totalPages + '" value="' + current + '" onkeydown="if(event.key===\'Enter\')goWinsPage(Number(this.value))" /> 页</span>';
+  html += '<select class="page-size-select" onchange="changeWinsPageSize(Number(this.value))">';
+  [10, 20, 50, 100].forEach(s => {
+    html += `<option value="${s}" ${s === winsPageSize ? 'selected' : ''}>${s}条/页</option>`;
+  });
+  html += '</select>';
+  html += `<span class="page-info">共 ${winsTotal} 条</span>`;
+  html += '</div>';
+  return html;
+}
+
+async function loadMyWins() {
+  const container = document.getElementById('myWinsDisplay');
+  if (!isLoggedIn()) { container.innerHTML = ''; return; }
+
+  try {
+    const res = await authFetch(`${BACKEND_URL}/api/wins/mine?page=${winsPage}&limit=${winsPageSize}`, {
+      headers: { 'Authorization': `Bearer ${authToken}` },
+    });
+    if (res.status === 401) return;
+    const json = await res.json();
+    winsTotal = json.total || 0;
+
+    if (!json.data || json.data.length === 0) {
+      container.innerHTML = '<div class="empty-state"><p>暂无中奖记录</p></div>';
+      return;
+    }
+
+    container.innerHTML = renderWinsData(json.data) + renderWinsPagination();
   } catch (err) {
+    if (err.message === 'SESSION_EXPIRED') return;
     console.error('Load my wins error:', err);
   }
+}
+
+function goWinsPage(page) {
+  const totalPages = Math.max(1, Math.ceil(winsTotal / winsPageSize));
+  winsPage = Math.max(1, Math.min(totalPages, page));
+  loadMyWins();
+}
+
+function changeWinsPageSize(size) {
+  winsPageSize = Math.min(100, Math.max(1, size));
+  winsPage = 1;
+  loadMyWins();
 }
 
 // ============ Init ============
@@ -1678,10 +2066,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Restore auth state
   updateUserUI();
-  if (isLoggedIn()) {
-    loadMyPicks();
-    loadMyWins();
-  }
 
   loadHistory();
   loadPublicWins();

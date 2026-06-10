@@ -18,7 +18,7 @@ function maskUsername(username: string): string {
 
 // GET /api/wins/public - 全站中奖记录（用户名脱敏）
 wins.get('/public', async (c) => {
-  const limit = Math.min(50, Math.max(1, parseInt(c.req.query('limit') || '20')));
+  const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') || '20')));
 
   const results = await c.env.DB.prepare(`
     SELECT w.id, w.issue, w.reds, w.blue, w.win_reds, w.win_blue,
@@ -67,7 +67,7 @@ wins.get('/public', async (c) => {
 wins.get('/mine', authMiddleware, async (c) => {
   const user = c.get('user');
   const page = Math.max(1, parseInt(c.req.query('page') || '1'));
-  const limit = Math.min(50, Math.max(1, parseInt(c.req.query('limit') || '20')));
+  const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') || '20')));
   const offset = (page - 1) * limit;
 
   // 获取总数

@@ -11,7 +11,7 @@ picks.use('*', authMiddleware);
 picks.get('/', async (c) => {
   const user = c.get('user');
   const page = Math.max(1, parseInt(c.req.query('page') || '1'));
-  const limit = Math.min(50, Math.max(1, parseInt(c.req.query('limit') || '20')));
+  const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') || '20')));
   const offset = (page - 1) * limit;
 
   // Get total count
