@@ -18,42 +18,65 @@
 ## 项目结构
 
 ```
-fronted/
-├── index.html    # 单页面应用（前端全部代码）
+frontend/
+├── index.html     # 源文件（BACKEND_URL 为占位符）
+├── build.js       # 构建脚本（注入环境变量）
+├── package.json
+├── .gitignore
 └── README.md
 ```
 
-## 本地运行
+## 本地开发
 
 ```bash
-cd fronted
+cd frontend
+
+# 方式一：直接启动静态服务器（需要先手动修改 index.html 中的 BACKEND_URL）
 python -m http.server 3000
+
+# 方式二：构建后启动（推荐）
+BACKEND_URL=http://localhost:8787 node build.js
+cd dist && python -m http.server 3000
 ```
 
 浏览器打开 `http://localhost:3000`。
 
-## 后端地址配置
+## 构建
 
-修改 `index.html` 第 873 行的 `BACKEND_URL`：
+`BACKEND_URL` 通过环境变量注入，不硬编码在源码中：
 
-```js
-// 本地开发（后端 wrangler dev 默认端口）
-const BACKEND_URL = 'http://localhost:8787';
+```bash
+# 本地开发
+BACKEND_URL=http://localhost:8787 node build.js
 
-// 部署后改为 Workers 域名
-const BACKEND_URL = 'https://luckylottery-backend.xxx.workers.dev';
+# 生产部署
+BACKEND_URL=https://luckylottery-backend.xxx.workers.dev node build.js
 ```
+
+构建产物输出到 `dist/index.html`。
 
 ## 部署
 
-### Cloudflare Pages（推荐）
+### Cloudflare Pages
 
 ```bash
-cd fronted
-npx wrangler pages deploy . --project-name luckylottery
+cd frontend
+
+# 设置环境变量并构建
+BACKEND_URL=https://luckylottery-backend.xxx.workers.dev node build.js
+
+# 部署 dist 目录
+npx wrangler pages deploy dist --project-name luckylottery
 ```
 
-或通过 [Cloudflare Dashboard](https://dash.cloudflare.com/) → Workers & Pages → Pages → 直接上传 `index.html`。
+或通过 [Cloudflare Dashboard](https://dash.cloudflare.com/) → Workers & Pages → Pages → 直接上传 `dist/index.html`。
+
+## 安全说明
+
+| 配置项 | 存储方式 | 说明 |
+|--------|----------|------|
+| `BACKEND_URL` | 环境变量 | 构建时注入，不硬编码在源码中 |
+| `dist/` | 构建产物 | 不提交 Git |
 
 ## 数据来源
 

@@ -118,10 +118,10 @@ npm install
 
 # 创建本地 D1 数据库（仅首次）
 npx wrangler d1 create lottery-db
-# 将输出的 database_id 填入 wrangler.toml
 
-# 编辑 .dev.vars，设置本地 JWT 密钥
-# JWT_SECRET=your-local-dev-secret
+# 编辑 .dev.vars，设置本地开发用的环境变量（不提交 Git）
+# JWT_SECRET=dev-secret-change-in-production
+# BACKEND_URL=http://localhost:3000
 
 # 初始化本地数据表
 npx wrangler d1 execute lottery-db --file=./db/schema.sql --local
@@ -140,17 +140,22 @@ npx wrangler dev
 npx wrangler d1 create lottery-db
 ```
 
-将输出的 `database_id` 填入 `wrangler.toml`。
+`wrangler.toml` 中已配置 `database_name = "lottery-db"`，wrangler 会自动按名称查找绑定，**无需在配置文件中填写 `database_id`**。
 
-### 2. 设置 JWT 密钥（Cloudflare Secret）
+### 2. 设置环境变量（Cloudflare Secrets）
 
 ```bash
-# 生成随机密钥
+# 生成随机 JWT 密钥
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
 # 设置为 Cloudflare Secret（不会出现在代码或配置文件中）
 npx wrangler secret put JWT_SECRET
+
+# 设置前端页面地址（CORS 白名单）
+npx wrangler secret put BACKEND_URL
 ```
+
+> `BACKEND_URL` 应设置为前端部署后的域名，如 `https://luckylottery.pages.dev`
 
 ### 3. 初始化线上数据库
 
@@ -164,6 +169,11 @@ npx wrangler d1 execute lottery-db --file=./db/schema.sql --remote
 npx wrangler deploy
 ```
 
-## 密钥安全说明
+## 安全说明
 
-`JWT_SECRET` 通过 `wrangler secret put` 设置为 **Cloudflare Secret**，加密存储在 Cloudflare 服务端，不会出现在 `wrangler.toml` 或任何源码中。本地开发时使用 `.dev.vars` 文件（已加入 `.gitignore`），不会被提交到 Git。
+| 配置项 | 存储方式 | 说明 |
+|--------|----------|------|
+| `database_name` | `wrangler.toml` | 仅数据库名称，wrangler 按名称查找，无安全风险 |
+| `JWT_SECRET` | Cloudflare Secret | 加密存储，不出现于代码/配置文件 |
+| `BACKEND_URL` | Cloudflare Vars | 变量存储，不出现于代码/配置文件 |
+| `.dev.vars` | 本地文件 | 仅本地开发，已加入 `.gitignore` |
