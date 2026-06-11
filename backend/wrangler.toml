@@ -9,7 +9,7 @@ database_name = "lottery-db"
 # Cron Trigger: 每天晚上 22:00（北京时间）检查中奖
 # 双色球开奖时间：周二、四、日 21:15
 [triggers]
-crons = ["0 14 * * *"]  # UTC 14:00 = 北京时间 22:00
+crons = ["0 * * * *"]  # 每小时执行一次
 
 [vars]
 CORS_ORIGIN = "*"
@@ -19,12 +19,12 @@ enabled = false
 head_sampling_rate = 1
 
 [observability.logs]
-enabled = true
+enabled = false
 head_sampling_rate = 1
 persist = true
 invocation_logs = true
 
 [observability.traces]
-enabled = false
+enabled = true
 persist = true
 head_sampling_rate = 1
