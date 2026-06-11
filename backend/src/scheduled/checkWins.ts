@@ -21,9 +21,9 @@ async function fetchLotteryResults(issue: string): Promise<LotteryResult | null>
   try {
     const res = await fetch(`${LOTTERY_API}?type=ssq&code=${issue}`);
     if (!res.ok) return null;
-    const json = await res.json() as { code: number; data?: { list: LotteryResult[] } };
-    if (json.code !== 1 || !json.data?.list?.length) return null;
-    return json.data.list[0];
+    const json = await res.json() as { code: number; data?: { data?: { list: LotteryResult[] } } };
+    if (json.code !== 1 || !json.data?.data?.list?.length) return null;
+    return json.data.data.list[0];
   } catch {
     return null;
   }
@@ -41,11 +41,11 @@ async function fetchLotteryResultsByRange(startIssue: string, endIssue: string):
     const limit = Math.min(100, endNum - startNum + 10);
     const res = await fetch(`${LOTTERY_API}?type=ssq&page=1&limit=${limit}`);
     if (!res.ok) return [];
-    const json = await res.json() as { code: number; data?: { list: LotteryResult[] } };
-    if (json.code !== 1 || !json.data?.list) return [];
+    const json = await res.json() as { code: number; data?: { data?: { list: LotteryResult[] } } };
+    if (json.code !== 1 || !json.data?.data?.list) return [];
 
     // 过滤出范围内的期号
-    return json.data.list.filter(item => {
+    return json.data.data.list.filter(item => {
       const num = parseInt(item.code, 10);
       return num >= startNum && num <= endNum;
     });

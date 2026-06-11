@@ -159,11 +159,11 @@ wins.post('/calculate', authMiddleware, async (c) => {
     if (!res.ok) {
       return c.json({ error: '获取开奖数据失败' }, 502);
     }
-    const json = await res.json() as { code: number; data?: { list: Array<{ code: string; one: string; two: string; three: string; four: string; five: string; six: string; seven: string }> } };
-    if (json.code !== 1 || !json.data?.list?.length) {
+    const json = await res.json() as { code: number; data?: { data?: { list: Array<{ code: string; one: string; two: string; three: string; four: string; five: string; six: string; seven: string }> } } };
+    if (json.code !== 1 || !json.data?.data?.list?.length) {
       return c.json({ error: '该期暂未开奖或开奖数据不可用' }, 404);
     }
-    const result = json.data.list[0];
+    const result = json.data.data.list[0];
     winReds = [
       parseInt(result.one, 10),
       parseInt(result.two, 10),
