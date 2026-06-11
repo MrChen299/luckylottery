@@ -932,7 +932,25 @@ body {
   margin-bottom: 12px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border-gold);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
+.btn-calc {
+  padding: 4px 14px;
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--gold-light);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.btn-calc:hover { background: rgba(212,167,69,0.12); }
+.btn-calc:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-calc.calc-done { border-color: var(--border-subtle); color: var(--text-muted); }
 .batch-card {
   background: var(--bg-card-alt);
   border-radius: var(--radius-sm);
@@ -1460,7 +1478,7 @@ function renderPicksData(data) {
     const batches = issueGroups[issue];
     const totalBatches = batches.length;
     html += `<div class="issue-group">
-      <div class="issue-group-header">第${issue}期</div>`;
+      <div class="issue-group-header"><span>第${issue}期</span><button class="btn-calc" id="calcBtn_${issue}" onclick="calculateWins('${issue}')">当期算奖</button></div>`;
     batches.forEach((batch, batchIdx) => {
       const batchNum = totalBatches - batchIdx;
       html += `<div class="batch-card">
@@ -1552,6 +1570,47 @@ function changePicksPageSize(size) {
   picksPageSize = Math.min(100, Math.max(1, size));
   picksPage = 1;
   loadMyPicks();
+}
+
+// ============ Calculate Wins ============
+async function calculateWins(issue) {
+  const btn = document.getElementById('calcBtn_' + issue);
+  if (!btn) return;
+  btn.disabled = true;
+  btn.textContent = '计算中...';
+
+  try {
+    const res = await authFetch(`${BACKEND_URL}/api/wins/calculate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ issue }),
+    });
+    const json = await res.json();
+
+    if (!res.ok) {
+      btn.disabled = false;
+      btn.textContent = '当期算奖';
+      showToast(json.error || '计算失败');
+      return;
+    }
+
+    btn.textContent = '已算奖';
+    btn.classList.add('calc-done');
+
+    if (json.wins > 0) {
+      showToast(`第${issue}期：${json.wins}注中奖！`);
+    } else {
+      showToast(`第${issue}期：计算完成，暂无中奖`);
+    }
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = '当期算奖';
+    if (err.message === 'SESSION_EXPIRED') return;
+    showToast('计算失败，请稍后重试');
+  }
 }
 
 // ============ Save Picks to Backend ============

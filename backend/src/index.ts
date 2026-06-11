@@ -39,9 +39,9 @@ app.get('/api/admin/check-wins', async (c) => {
   return c.json({ message: 'Win check completed', result });
 });
 
-export default app;
-
 // Scheduled handler for Cron triggers
-export const scheduled: ExportedHandler<Env>['scheduled'] = async (event, env, ctx) => {
+const scheduled: ExportedHandler<Env>['scheduled'] = async (event, env, ctx) => {
   ctx.waitUntil(scheduledHandler(env));
 };
+
+export default { fetch: app.fetch, scheduled };

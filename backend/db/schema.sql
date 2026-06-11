@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS wins (
 CREATE INDEX IF NOT EXISTS idx_wins_user_id ON wins(user_id);
 CREATE INDEX IF NOT EXISTS idx_wins_issue ON wins(issue);
 CREATE INDEX IF NOT EXISTS idx_wins_prize_level ON wins(prize_level);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_wins_user_issue_pick ON wins(user_id, issue, pick_id);
 
 -- 已处理的期号记录表（用于定时任务去重）
 CREATE TABLE IF NOT EXISTS processed_issues (

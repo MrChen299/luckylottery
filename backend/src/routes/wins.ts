@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../index';
 import { authMiddleware, type AuthPayload } from '../middleware/auth';
-import { getPrizeName, formatAmount } from '../utils/lottery';
+import { calculatePrize, getPrizeName, formatAmount } from '../utils/lottery';
 
 const wins = new Hono<{ Bindings: Env; Variables: { user: AuthPayload } }>();
 
@@ -114,6 +114,142 @@ wins.get('/mine', authMiddleware, async (c) => {
   }));
 
   return c.json({ data, total, page, limit });
+});
+
+// POST /api/wins/calculate - 按期号计算中奖（需登录）
+wins.post('/calculate', authMiddleware, async (c) => {
+  const user = c.get('user');
+
+  let body: { issue?: string };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: '请求参数错误' }, 400);
+  }
+
+  const { issue } = body;
+  if (!issue) {
+    return c.json({ error: '缺少期号参数' }, 400);
+  }
+
+  // 1. 获取该用户该期的所有机选记录
+  const picksResult = await c.env.DB.prepare(`
+    SELECT id, user_id, issue, reds, blue
+    FROM picks
+    WHERE user_id = ? AND issue = ?
+  `).bind(user.userId, issue).all<{
+    id: number;
+    user_id: number;
+    issue: string;
+    reds: string;
+    blue: number;
+  }>();
+
+  if (!picksResult.results || picksResult.results.length === 0) {
+    return c.json({ error: '该期无机选记录' }, 404);
+  }
+
+  // 2. 获取该期开奖数据
+  const LOTTERY_API = 'https://api.huiniao.top/interface/home/lotteryHistory';
+  let winReds: number[] = [];
+  let winBlue = 0;
+
+  try {
+    const res = await fetch(`${LOTTERY_API}?type=ssq&code=${issue}`);
+    if (!res.ok) {
+      return c.json({ error: '获取开奖数据失败' }, 502);
+    }
+    const json = await res.json() as { code: number; data?: { list: Array<{ code: string; one: string; two: string; three: string; four: string; five: string; six: string; seven: string }> } };
+    if (json.code !== 1 || !json.data?.list?.length) {
+      return c.json({ error: '该期暂未开奖或开奖数据不可用' }, 404);
+    }
+    const result = json.data.list[0];
+    winReds = [
+      parseInt(result.one, 10),
+      parseInt(result.two, 10),
+      parseInt(result.three, 10),
+      parseInt(result.four, 10),
+      parseInt(result.five, 10),
+      parseInt(result.six, 10),
+    ];
+    winBlue = parseInt(result.seven, 10);
+  } catch {
+    return c.json({ error: '获取开奖数据失败' }, 502);
+  }
+
+  // 3. 计算中奖并写入 wins 表（INSERT OR IGNORE 防重复）
+  let winsCount = 0;
+  let skipCount = 0;
+  const results: Array<{
+    pickId: number;
+    reds: number[];
+    blue: number;
+    redMatch: number;
+    blueMatch: number;
+    prizeLevel: number;
+    prizeName: string;
+    prizeAmount: number;
+    prizeAmountText: string;
+  }> = [];
+
+  for (const pick of picksResult.results) {
+    const userReds = JSON.parse(pick.reds) as number[];
+    const prize = calculatePrize(userReds, pick.blue, winReds, winBlue);
+
+    try {
+      await c.env.DB.prepare(`
+        INSERT OR IGNORE INTO wins (user_id, pick_id, issue, reds, blue, win_reds, win_blue, red_match, blue_match, prize_level, prize_amount)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        pick.user_id,
+        pick.id,
+        pick.issue,
+        pick.reds,
+        pick.blue,
+        JSON.stringify(winReds),
+        winBlue,
+        prize.redMatch,
+        prize.blueMatch,
+        prize.level,
+        prize.amount
+      ).run();
+
+      // 检查是否实际插入（通过查询确认）
+      const existing = await c.env.DB.prepare(`
+        SELECT id FROM wins WHERE user_id = ? AND issue = ? AND pick_id = ?
+      `).bind(pick.user_id, pick.issue, pick.id).first<{ id: number }>();
+
+      if (existing) {
+        results.push({
+          pickId: pick.id,
+          reds: userReds,
+          blue: pick.blue,
+          redMatch: prize.redMatch,
+          blueMatch: prize.blueMatch,
+          prizeLevel: prize.level,
+          prizeName: getPrizeName(prize.level),
+          prizeAmount: prize.amount,
+          prizeAmountText: formatAmount(prize.amount),
+        });
+        if (prize.level > 0) winsCount++;
+      } else {
+        skipCount++;
+      }
+    } catch {
+      skipCount++;
+    }
+  }
+
+  return c.json({
+    message: `计算完成：共${picksResult.results.length}注，中奖${winsCount}注，跳过${skipCount}注`,
+    issue,
+    winReds,
+    winBlue,
+    results,
+    total: picksResult.results.length,
+    wins: winsCount,
+    skipped: skipCount,
+  });
 });
 
 export default wins;
