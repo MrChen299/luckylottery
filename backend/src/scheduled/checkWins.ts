@@ -119,10 +119,10 @@ export async function checkWins(env: Env): Promise<{ processed: number; wins: nu
 
     const prize = calculatePrize(userReds, pick.blue, winReds, winBlue);
 
-    // 只记录中奖的
+    // 只记录中奖的（INSERT OR IGNORE 防重复）
     if (prize.level > 0) {
       await db.prepare(`
-        INSERT INTO wins (user_id, pick_id, issue, reds, blue, win_reds, win_blue, red_match, blue_match, prize_level, prize_amount)
+        INSERT OR IGNORE INTO wins (user_id, pick_id, issue, reds, blue, win_reds, win_blue, red_match, blue_match, prize_level, prize_amount)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).bind(
         pick.user_id,

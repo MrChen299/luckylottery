@@ -177,8 +177,9 @@ wins.post('/calculate', authMiddleware, async (c) => {
     return c.json({ error: '获取开奖数据失败' }, 502);
   }
 
-  // 3. 计算中奖并写入 wins 表（INSERT OR IGNORE 防重复）
+  // 3. 计算中奖并写入 wins 表（仅记录中奖的，INSERT OR IGNORE 防重复）
   let winsCount = 0;
+  let noWinCount = 0;
   let skipCount = 0;
   const results: Array<{
     pickId: number;
@@ -195,6 +196,11 @@ wins.post('/calculate', authMiddleware, async (c) => {
   for (const pick of picksResult.results) {
     const userReds = JSON.parse(pick.reds) as number[];
     const prize = calculatePrize(userReds, pick.blue, winReds, winBlue);
+
+    if (prize.level === 0) {
+      noWinCount++;
+      continue;
+    }
 
     try {
       await c.env.DB.prepare(`
@@ -220,6 +226,7 @@ wins.post('/calculate', authMiddleware, async (c) => {
       `).bind(pick.user_id, pick.issue, pick.id).first<{ id: number }>();
 
       if (existing) {
+        winsCount++;
         results.push({
           pickId: pick.id,
           reds: userReds,
@@ -231,7 +238,6 @@ wins.post('/calculate', authMiddleware, async (c) => {
           prizeAmount: prize.amount,
           prizeAmountText: formatAmount(prize.amount),
         });
-        if (prize.level > 0) winsCount++;
       } else {
         skipCount++;
       }
@@ -241,13 +247,14 @@ wins.post('/calculate', authMiddleware, async (c) => {
   }
 
   return c.json({
-    message: `计算完成：共${picksResult.results.length}注，中奖${winsCount}注，跳过${skipCount}注`,
+    message: `计算完成：共${picksResult.results.length}注，中奖${winsCount}注，未中奖${noWinCount}注，跳过${skipCount}注`,
     issue,
     winReds,
     winBlue,
     results,
     total: picksResult.results.length,
     wins: winsCount,
+    noWin: noWinCount,
     skipped: skipCount,
   });
 });
