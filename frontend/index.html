@@ -328,6 +328,52 @@ body {
 }
 .lucky-clear.visible { opacity: 1; pointer-events: auto; }
 .lucky-clear:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+.lucky-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-sm);
+  margin-top: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 20;
+  display: none;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.lucky-dropdown.show { display: block; }
+.lucky-dropdown-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.15s;
+}
+.lucky-dropdown-item:hover { background: rgba(212,167,69,0.1); }
+.lucky-dropdown-item:first-child { border-radius: var(--radius-sm) var(--radius-sm) 0 0; }
+.lucky-dropdown-item:last-child { border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
+.lucky-dropdown-item .item-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lucky-dropdown-item .item-del {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.lucky-dropdown-item:hover .item-del { opacity: 1; }
+.lucky-dropdown-item .item-del:hover { color: var(--crimson-light); }
+.lucky-dropdown-empty {
+  padding: 14px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
 
 /* ============ Lottery Balls ============ */
 .ball-display {
@@ -1266,6 +1312,7 @@ body {
         <div class="lucky-input-wrap">
           <input type="text" class="lucky-input" id="luckyInput" placeholder="输入幸运字符（可选）" maxlength="30" autocomplete="off" />
           <button class="lucky-clear" id="luckyClear" onclick="clearLuckyInput()" title="清除">&times;</button>
+          <div class="lucky-dropdown" id="luckyDropdown"></div>
         </div>
       </div>
       <div class="strategy-info" id="strategyInfo"></div>
@@ -1386,11 +1433,78 @@ function changeCount(delta) {
 }
 
 // ============ Lucky Input ============
+const LUCKY_STORAGE_KEY = 'luckyHistory';
+
+function getLuckyHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(LUCKY_STORAGE_KEY) || '[]');
+  } catch { return []; }
+}
+
+function saveLuckyHistory(str) {
+  if (!str) return;
+  let list = getLuckyHistory();
+  list = list.filter(s => s !== str);
+  list.unshift(str);
+  if (list.length > 20) list = list.slice(0, 20);
+  localStorage.setItem(LUCKY_STORAGE_KEY, JSON.stringify(list));
+}
+
+function removeLuckyHistory(str) {
+  let list = getLuckyHistory();
+  list = list.filter(s => s !== str);
+  localStorage.setItem(LUCKY_STORAGE_KEY, JSON.stringify(list));
+  showLuckyDropdown();
+}
+
+function showLuckyDropdown() {
+  const dropdown = document.getElementById('luckyDropdown');
+  const input = document.getElementById('luckyInput');
+  const keyword = input.value.trim().toLowerCase();
+  let list = getLuckyHistory();
+
+  if (keyword) {
+    list = list.filter(s => s.toLowerCase().includes(keyword));
+  }
+
+  if (list.length === 0) {
+    dropdown.innerHTML = '<div class="lucky-dropdown-empty">暂无历史记录</div>';
+  } else {
+    dropdown.innerHTML = list.map(s =>
+      `<div class="lucky-dropdown-item" onclick="selectLuckyItem(this)" data-value="${escapeHtml(s)}">` +
+      `<span class="item-text">${escapeHtml(s)}</span>` +
+      `<span class="item-del" onclick="event.stopPropagation();deleteLuckyItem('${escapeHtml(s)}')" title="删除">✕</span>` +
+      `</div>`
+    ).join('');
+  }
+  dropdown.classList.add('show');
+}
+
+function hideLuckyDropdown() {
+  setTimeout(() => {
+    const dropdown = document.getElementById('luckyDropdown');
+    if (dropdown) dropdown.classList.remove('show');
+  }, 150);
+}
+
+function selectLuckyItem(el) {
+  const input = document.getElementById('luckyInput');
+  input.value = el.dataset.value || '';
+  updateClearBtn();
+  hideLuckyDropdown();
+  input.focus();
+}
+
+function deleteLuckyItem(str) {
+  removeLuckyHistory(str);
+}
+
 function clearLuckyInput() {
   const input = document.getElementById('luckyInput');
   input.value = '';
   updateClearBtn();
   input.focus();
+  showLuckyDropdown();
 }
 
 function updateClearBtn() {
@@ -2041,6 +2155,9 @@ function generatePicks() {
   const luckyStr = document.getElementById('luckyInput').value.trim();
   updateClearBtn();
 
+  // Save lucky string to history
+  if (luckyStr) saveLuckyHistory(luckyStr);
+
   let baseSeed = Date.now();
   let rng = null;
   let seedTag = '';
@@ -2262,7 +2379,9 @@ function changeWinsPageSize(size) {
 // ============ Init ============
 document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('luckyInput');
-  input.addEventListener('input', updateClearBtn);
+  input.addEventListener('input', () => { updateClearBtn(); showLuckyDropdown(); });
+  input.addEventListener('focus', showLuckyDropdown);
+  input.addEventListener('blur', hideLuckyDropdown);
   updateClearBtn();
 
   // Restore auth state
