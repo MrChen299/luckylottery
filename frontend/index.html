@@ -981,6 +981,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+}
+.issue-group-header > span {
+  flex: 1;
+  min-width: 0;
 }
 .btn-calc {
   padding: 4px 14px;
@@ -993,6 +998,7 @@ body {
   cursor: pointer;
   transition: var(--transition);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .btn-calc:hover { background: rgba(212,167,69,0.12); }
 .btn-calc:disabled { opacity: 0.5; cursor: not-allowed; }
