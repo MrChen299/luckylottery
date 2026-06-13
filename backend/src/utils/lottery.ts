@@ -67,11 +67,11 @@ export function calculatePrize(
 // 格式化金额（分 -> 元）
 export function formatAmount(fen: number): string {
   if (fen >= 1_0000_0000) {
-    return `${(fen / 1_0000_0000).toFixed(0)}万`;
-  } else if (fen >= 1_0000) {
-    return `${(fen / 1_0000).toFixed(0)}万`;
+    return `${(fen / 1_0000_0000).toFixed(2)}亿`;
+  } else if (fen >= 1_0000_00) {
+    return `${(fen / 1_0000_00).toFixed(2)}万`;
   } else {
-    return `${(fen / 100).toFixed(0)}元`;
+    return `${(fen / 100).toFixed(2)}元`;
   }
 }
 
