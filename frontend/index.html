@@ -1505,12 +1505,12 @@ body {
       <div class="backtest-form">
         <div class="backtest-form-row">
           <div class="backtest-field">
-            <label>起始期号</label>
-            <input type="text" id="btStartIssue" placeholder="如 2026001" maxlength="7" />
+            <label>开始日期</label>
+            <input type="date" id="btStartDate" />
           </div>
           <div class="backtest-field">
-            <label>结束期号</label>
-            <input type="text" id="btEndIssue" placeholder="如 2026050" maxlength="7" />
+            <label>结束日期</label>
+            <input type="date" id="btEndDate" />
           </div>
         </div>
         <div class="backtest-form-row">
@@ -1740,7 +1740,10 @@ function switchMainTab(tab) {
     if (isLoggedIn()) { loadMyWins(); }
     else { showToast('请先登录后查看中奖记录'); openAuth(); }
   }
-  if (tab === 'backtest' && isLoggedIn()) loadBacktestHistory();
+  if (tab === 'backtest') {
+    initBacktestDates();
+    if (isLoggedIn()) loadBacktestHistory();
+  }
 }
 
 function openAuth() {
@@ -2572,6 +2575,20 @@ function changeWinsPageSize(size) {
 // ============ Backtest ============
 let btPickCount = 5;
 
+function initBacktestDates() {
+  const startEl = document.getElementById('btStartDate');
+  const endEl = document.getElementById('btEndDate');
+  if (!startEl.value) {
+    const now = new Date();
+    const threeMonthsAgo = new Date(now);
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+    startEl.value = threeMonthsAgo.toISOString().slice(0, 10);
+    endEl.value = now.toISOString().slice(0, 10);
+  }
+  startEl.max = new Date().toISOString().slice(0, 10);
+  endEl.max = new Date().toISOString().slice(0, 10);
+}
+
 function changeBtCount(delta) {
   btPickCount = Math.max(1, Math.min(20, btPickCount + delta));
   document.getElementById('btCountDisplay').textContent = btPickCount;
@@ -2584,12 +2601,17 @@ async function runBacktest() {
     return;
   }
 
-  const startIssue = document.getElementById('btStartIssue').value.trim();
-  const endIssue = document.getElementById('btEndIssue').value.trim();
+  const startDate = document.getElementById('btStartDate').value.trim();
+  const endDate = document.getElementById('btEndDate').value.trim();
   const luckySeed = document.getElementById('btLuckySeed').value.trim();
 
-  if (!startIssue || !endIssue) {
-    showToast('请输入起止期号');
+  if (!startDate || !endDate) {
+    showToast('请选择起止日期');
+    return;
+  }
+
+  if (startDate > endDate) {
+    showToast('开始日期不能晚于结束日期');
     return;
   }
 
@@ -2606,8 +2628,8 @@ async function runBacktest() {
         'Authorization': `Bearer ${authToken}`,
       },
       body: JSON.stringify({
-        startIssue,
-        endIssue,
+        startDate,
+        endDate,
         luckySeed: luckySeed || undefined,
         pickCount: btPickCount,
       }),
@@ -2627,7 +2649,7 @@ async function runBacktest() {
       <div class="bt-result-card">
         <div class="bt-result-header">
           <h3>回测结果</h3>
-          <div style="font-size:0.82rem;color:var(--text-secondary);">${json.startIssue}期 ~ ${json.endIssue}期 · 共${json.issueCount}期 · 每期${json.pickCount}注${json.luckySeed ? ' · 🔮' + escapeHtml(json.luckySeed) : ''}</div>
+          <div style="font-size:0.82rem;color:var(--text-secondary);">${json.startDate} ~ ${json.endDate} · 共${json.issueCount}期 · 每期${json.pickCount}注${json.luckySeed ? ' · 🔮' + escapeHtml(json.luckySeed) : ''}</div>
         </div>
         <div class="bt-stats">
           <div class="bt-stat-item">
@@ -2698,7 +2720,7 @@ async function loadBacktestHistory() {
       return `
         <div class="bt-history-item" onclick="viewBacktestDetail(${bt.id})">
           <div class="bt-history-header">
-            <span>${bt.startIssue}期 ~ ${bt.endIssue}期</span>
+            <span>${bt.startDate || (bt.startIssue + '期')} ~ ${bt.endDate || (bt.endIssue + '期')}</span>
             <span class="prize-badge level-${bt.totalWins > 0 ? '4' : '0'}">${bt.winRate}</span>
           </div>
           <div class="bt-history-meta">
@@ -2738,7 +2760,7 @@ async function viewBacktestDetail(id) {
       <div class="calc-modal-content" style="max-width:560px;max-height:85vh;">
         <div class="calc-draw-row" style="border-bottom-color:var(--border-gold);">
           <span class="calc-draw-label">回测详情</span>
-          <span style="font-size:0.82rem;color:var(--text-secondary);">${bt.startIssue}期 ~ ${bt.endIssue}期 · 胜率${bt.winRate}</span>
+          <span style="font-size:0.82rem;color:var(--text-secondary);">${bt.startDate || (bt.startIssue + '期')} ~ ${bt.endDate || (bt.endIssue + '期')} · 胜率${bt.winRate}</span>
         </div>
         <div class="bt-stats" style="margin-bottom:16px;">
           <div class="bt-stat-item"><div class="bt-stat-label">中奖金额</div><div class="bt-stat-value">${bt.totalPrizeAmountText}</div></div>

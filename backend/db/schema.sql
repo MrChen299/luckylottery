@@ -62,6 +62,8 @@ CREATE TABLE IF NOT EXISTS backtests (
   user_id INTEGER NOT NULL,
   start_issue TEXT NOT NULL,
   end_issue TEXT NOT NULL,
+  start_date TEXT,
+  end_date TEXT,
   lucky_seed TEXT,
   pick_count INTEGER NOT NULL DEFAULT 5,
   total_picks INTEGER NOT NULL DEFAULT 0,

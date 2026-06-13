@@ -58,16 +58,17 @@ function parseDraws(raw: LotteryResult[]): DrawData[] {
 backtest.post('/', authMiddleware, async (c) => {
   const user = c.get('user');
 
-  let body: { startIssue?: string; endIssue?: string; luckySeed?: string; pickCount?: number };
+  let body: { startIssue?: string; endIssue?: string; startDate?: string; endDate?: string; luckySeed?: string; pickCount?: number };
   try {
     body = await c.req.json();
   } catch {
     return c.json({ error: '请求参数错误' }, 400);
   }
 
-  const { startIssue, endIssue, luckySeed, pickCount: rawPickCount } = body;
-  if (!startIssue || !endIssue) {
-    return c.json({ error: '请选择起止期号' }, 400);
+  const { startIssue: rawStartIssue, endIssue: rawEndIssue, startDate, endDate, luckySeed, pickCount: rawPickCount } = body;
+
+  if (!rawStartIssue && !rawEndIssue && !startDate && !endDate) {
+    return c.json({ error: '请选择起止日期或起止期号' }, 400);
   }
 
   const pickCount = Math.min(20, Math.max(1, rawPickCount || 5));
@@ -80,11 +81,39 @@ backtest.post('/', authMiddleware, async (c) => {
 
   const parsedDraws = parseDraws(allDraws);
 
-  // 2. 找到范围内的期号
+  // 2. 根据日期或期号找到范围
+  let startIssue = rawStartIssue || '';
+  let endIssue = rawEndIssue || '';
+
+  if (startDate || endDate) {
+    // 按日期查找对应的期号
+    // parsedDraws 按时间降序排列（最新在前），date 格式为 "2026-06-11"
+    if (startDate) {
+      // 找到 >= startDate 的最早一期
+      const match = [...parsedDraws].reverse().find(d => d.date >= startDate);
+      if (!match) {
+        return c.json({ error: '开始日期范围内无开奖数据，请检查日期是否正确' }, 400);
+      }
+      startIssue = match.issue;
+    }
+    if (endDate) {
+      // 找到 <= endDate 的最新一期
+      const match = parsedDraws.find(d => d.date <= endDate);
+      if (!match) {
+        return c.json({ error: '结束日期范围内无开奖数据，请检查日期是否正确' }, 400);
+      }
+      endIssue = match.issue;
+    }
+  }
+
   const startIdx = parsedDraws.findIndex(d => d.issue === startIssue);
   const endIdx = parsedDraws.findIndex(d => d.issue === endIssue);
   if (startIdx === -1 || endIdx === -1) {
-    return c.json({ error: '期号范围无效，请检查期号是否正确' }, 400);
+    return c.json({ error: '日期范围无效，请检查日期是否正确' }, 400);
+  }
+
+  if (startIdx < endIdx) {
+    return c.json({ error: '开始日期不能晚于结束日期' }, 400);
   }
 
   // parsedDraws 按时间降序排列（最新在前）
@@ -92,10 +121,12 @@ backtest.post('/', authMiddleware, async (c) => {
   const rangeDraws = parsedDraws.slice(endIdx, startIdx + 1).reverse();
 
   // 3. 创建回测记录
+  const startDateVal = rangeDraws[0]?.date || '';
+  const endDateVal = rangeDraws[rangeDraws.length - 1]?.date || '';
   const btResult = await c.env.DB.prepare(`
-    INSERT INTO backtests (user_id, start_issue, end_issue, lucky_seed, pick_count, status)
-    VALUES (?, ?, ?, ?, ?, 'running')
-  `).bind(user.userId, startIssue, endIssue, luckySeed || null, pickCount).run();
+    INSERT INTO backtests (user_id, start_issue, end_issue, start_date, end_date, lucky_seed, pick_count, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 'running')
+  `).bind(user.userId, startIssue, endIssue, startDateVal, endDateVal, luckySeed || null, pickCount).run();
 
   const backtestId = btResult.meta.last_row_id;
 
@@ -159,6 +190,8 @@ backtest.post('/', authMiddleware, async (c) => {
       id: backtestId,
       startIssue,
       endIssue,
+      startDate: startDateVal,
+      endDate: endDateVal,
       luckySeed: luckySeed || null,
       pickCount,
       totalPicks,
@@ -197,6 +230,8 @@ backtest.get('/', authMiddleware, async (c) => {
     id: r.id,
     startIssue: r.start_issue,
     endIssue: r.end_issue,
+    startDate: r.start_date || '',
+    endDate: r.end_date || '',
     luckySeed: r.lucky_seed,
     pickCount: r.pick_count,
     totalPicks: r.total_picks,
@@ -248,6 +283,8 @@ backtest.get('/:id', authMiddleware, async (c) => {
     id: bt.id,
     startIssue: bt.start_issue,
     endIssue: bt.end_issue,
+    startDate: bt.start_date || '',
+    endDate: bt.end_date || '',
     luckySeed: bt.lucky_seed,
     pickCount: bt.pick_count,
     totalPicks: bt.total_picks,
