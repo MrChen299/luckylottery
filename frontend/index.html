@@ -2763,9 +2763,12 @@ async function viewBacktestDetail(id) {
           <span style="font-size:0.82rem;color:var(--text-secondary);">${bt.startDate || (bt.startIssue + '期')} ~ ${bt.endDate || (bt.endIssue + '期')} · 胜率${bt.winRate}</span>
         </div>
         <div class="bt-stats" style="margin-bottom:16px;">
+          <div class="bt-stat-item"><div class="bt-stat-label">胜率</div><div class="bt-stat-value">${bt.winRate}</div></div>
           <div class="bt-stat-item"><div class="bt-stat-label">中奖金额</div><div class="bt-stat-value">${bt.totalPrizeAmountText}</div></div>
           <div class="bt-stat-item"><div class="bt-stat-label">下注金额</div><div class="bt-stat-value">${bt.totalBetAmountText}</div></div>
-          <div class="bt-stat-item"><div class="bt-stat-label">中奖注数</div><div class="bt-stat-value">${bt.totalWins}/${bt.totalPicks}</div></div>
+          <div class="bt-stat-item"><div class="bt-stat-label">总注数</div><div class="bt-stat-value">${bt.totalPicks}</div></div>
+          <div class="bt-stat-item"><div class="bt-stat-label">中奖注数</div><div class="bt-stat-value">${bt.totalWins}</div></div>
+          <div class="bt-stat-item"><div class="bt-stat-label">盈亏</div><div class="bt-stat-value${(bt.totalPrizeAmount - bt.totalBetAmount) < 0 ? ' negative' : ''}">${(bt.totalPrizeAmount - bt.totalBetAmount) >= 0 ? '+' : ''}${formatCents(bt.totalPrizeAmount - bt.totalBetAmount)}</div></div>
         </div>`;
 
     issueOrder.forEach(issue => {
