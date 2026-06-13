@@ -70,11 +70,12 @@ wins.get('/mine', authMiddleware, async (c) => {
   const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') || '20')));
   const offset = (page - 1) * limit;
 
-  // 获取总数
+  // 获取总数和单注最高中奖
   const countResult = await c.env.DB.prepare(`
-    SELECT COUNT(*) as total FROM wins WHERE user_id = ? AND prize_level > 0
-  `).bind(user.userId).first<{ total: number }>();
+    SELECT COUNT(*) as total, MAX(prize_amount) as maxPrizeAmount FROM wins WHERE user_id = ? AND prize_level > 0
+  `).bind(user.userId).first<{ total: number; maxPrizeAmount: number }>();
   const total = countResult?.total || 0;
+  const maxPrizeAmount = countResult?.maxPrizeAmount || 0;
 
   // 获取记录
   const results = await c.env.DB.prepare(`
@@ -113,7 +114,7 @@ wins.get('/mine', authMiddleware, async (c) => {
     createdAt: row.created_at,
   }));
 
-  return c.json({ data, total, page, limit });
+  return c.json({ data, total, maxPrizeAmount, maxPrizeAmountText: formatAmount(maxPrizeAmount), page, limit });
 });
 
 // POST /api/wins/calculate - 按期号计算中奖（需登录）

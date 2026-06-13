@@ -134,6 +134,7 @@ backtest.post('/', authMiddleware, async (c) => {
     let totalPicks = 0;
     let totalWins = 0;
     let totalPrizeAmount = 0;
+    let maxPrizeAmount = 0;
     const detailStmt = c.env.DB.prepare(`
       INSERT INTO backtest_details (backtest_id, issue, reds, blue, win_reds, win_blue, red_match, blue_match, prize_level, prize_amount)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -174,6 +175,7 @@ backtest.post('/', authMiddleware, async (c) => {
         if (prize.level > 0) {
           totalWins++;
           totalPrizeAmount += prize.amount;
+          if (prize.amount > maxPrizeAmount) maxPrizeAmount = prize.amount;
         }
       }
     }
@@ -188,9 +190,9 @@ backtest.post('/', authMiddleware, async (c) => {
     const winRate = totalPicks > 0 ? totalWins / totalPicks : 0;
 
     await c.env.DB.prepare(`
-      UPDATE backtests SET total_picks = ?, total_wins = ?, total_prize_amount = ?, total_bet_amount = ?, win_rate = ?, status = 'completed'
+      UPDATE backtests SET total_picks = ?, total_wins = ?, total_prize_amount = ?, total_bet_amount = ?, max_prize_amount = ?, win_rate = ?, status = 'completed'
       WHERE id = ?
-    `).bind(totalPicks, totalWins, totalPrizeAmount, totalBetAmount, winRate, backtestId).run();
+    `).bind(totalPicks, totalWins, totalPrizeAmount, totalBetAmount, maxPrizeAmount, winRate, backtestId).run();
 
     return c.json({
       id: backtestId,
@@ -206,6 +208,8 @@ backtest.post('/', authMiddleware, async (c) => {
       totalPrizeAmountText: formatAmount(totalPrizeAmount),
       totalBetAmount,
       totalBetAmountText: formatAmount(totalBetAmount),
+      maxPrizeAmount,
+      maxPrizeAmountText: formatAmount(maxPrizeAmount),
       winRate: (winRate * 100).toFixed(2) + '%',
       issueCount: rangeDraws.length,
     });
@@ -246,6 +250,8 @@ backtest.get('/', authMiddleware, async (c) => {
     totalPrizeAmountText: formatAmount(r.total_prize_amount),
     totalBetAmount: r.total_bet_amount,
     totalBetAmountText: formatAmount(r.total_bet_amount),
+    maxPrizeAmount: r.max_prize_amount || 0,
+    maxPrizeAmountText: formatAmount(r.max_prize_amount || 0),
     winRate: (r.win_rate * 100).toFixed(2) + '%',
     status: r.status,
     createdAt: r.created_at,
@@ -299,6 +305,8 @@ backtest.get('/:id', authMiddleware, async (c) => {
     totalPrizeAmountText: formatAmount(bt.total_prize_amount),
     totalBetAmount: bt.total_bet_amount,
     totalBetAmountText: formatAmount(bt.total_bet_amount),
+    maxPrizeAmount: bt.max_prize_amount || 0,
+    maxPrizeAmountText: formatAmount(bt.max_prize_amount || 0),
     winRate: (bt.win_rate * 100).toFixed(2) + '%',
     status: bt.status,
     createdAt: bt.created_at,

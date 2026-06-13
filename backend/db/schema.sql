@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS backtests (
   total_wins INTEGER NOT NULL DEFAULT 0,
   total_prize_amount INTEGER NOT NULL DEFAULT 0,
   total_bet_amount INTEGER NOT NULL DEFAULT 0,
+  max_prize_amount INTEGER NOT NULL DEFAULT 0,
   win_rate REAL NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT 'completed',
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
