@@ -20,17 +20,27 @@ interface LotteryResult {
   seven: string;
 }
 
-// 从API获取开奖数据
-async function fetchDraws(code?: string, limit?: number): Promise<LotteryResult[]> {
-  const params = new URLSearchParams({ type: 'ssq' });
-  if (code) params.set('code', code);
-  if (limit) params.set('limit', String(limit));
+// 从API获取开奖数据（分页获取，确保覆盖足够范围）
+async function fetchDraws(neededCount: number): Promise<LotteryResult[]> {
+  const allResults: LotteryResult[] = [];
+  let page = 1;
+  const pageSize = 100;
 
-  const res = await fetch(`${LOTTERY_API}?${params}`);
-  if (!res.ok) throw new Error('获取开奖数据失败');
-  const json = await res.json() as { code: number; data?: { data?: { list: LotteryResult[] } } };
-  if (json.code !== 1 || !json.data?.data?.list) return [];
-  return json.data.data.list;
+  while (allResults.length < neededCount) {
+    const params = new URLSearchParams({ type: 'ssq', page: String(page), limit: String(pageSize) });
+    const res = await fetch(`${LOTTERY_API}?${params}`);
+    if (!res.ok) break;
+    const json = await res.json() as { code: number; data?: { data?: { list: LotteryResult[]; totalCount?: number } } };
+    if (json.code !== 1 || !json.data?.data?.list?.length) break;
+
+    allResults.push(...json.data.data.list);
+
+    const totalCount = json.data.data.totalCount || 0;
+    if (allResults.length >= totalCount) break;
+    page++;
+  }
+
+  return allResults;
 }
 
 // 解析开奖数据
@@ -62,8 +72,8 @@ backtest.post('/', authMiddleware, async (c) => {
 
   const pickCount = Math.min(20, Math.max(1, rawPickCount || 5));
 
-  // 1. 获取足够多的开奖数据（从endIssue往前取足够多期，包含startIssue之前的50期用于分析）
-  const allDraws = await fetchDraws(endIssue, 200);
+  // 1. 获取足够多的开奖数据（覆盖从startIssue往前的所有期 + 50期用于分析）
+  const allDraws = await fetchDraws(300);
   if (allDraws.length === 0) {
     return c.json({ error: '获取开奖数据失败' }, 502);
   }
