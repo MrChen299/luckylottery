@@ -2694,7 +2694,7 @@ async function runBacktest() {
 }
 
 function formatCents(cents) {
-  if (cents >= 100) return (cents / 100).toFixed(2) + '元';
+  if (Math.abs(cents) >= 100) return (cents / 100).toFixed(2) + '元';
   return cents + '分';
 }
 
