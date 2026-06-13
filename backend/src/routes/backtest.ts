@@ -134,6 +134,11 @@ backtest.post('/', authMiddleware, async (c) => {
     let totalPicks = 0;
     let totalWins = 0;
     let totalPrizeAmount = 0;
+    const detailStmt = c.env.DB.prepare(`
+      INSERT INTO backtest_details (backtest_id, issue, reds, blue, win_reds, win_blue, red_match, blue_match, prize_level, prize_amount)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    const batchStmts: any[] = [];
 
     // 4. 对每一期进行回测
     for (let i = 0; i < rangeDraws.length; i++) {
@@ -153,11 +158,7 @@ backtest.post('/', authMiddleware, async (c) => {
         const prize = calculatePrize(ticket.reds, ticket.blue, draw.reds, draw.blue);
         totalPicks++;
 
-        // 写入明细（所有记录都保存，包括未中奖）
-        await c.env.DB.prepare(`
-          INSERT INTO backtest_details (backtest_id, issue, reds, blue, win_reds, win_blue, red_match, blue_match, prize_level, prize_amount)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).bind(
+        batchStmts.push(detailStmt.bind(
           backtestId,
           draw.issue,
           JSON.stringify(ticket.reds),
@@ -168,7 +169,7 @@ backtest.post('/', authMiddleware, async (c) => {
           prize.blueMatch,
           prize.level,
           prize.amount
-        ).run();
+        ));
 
         if (prize.level > 0) {
           totalWins++;
@@ -177,7 +178,12 @@ backtest.post('/', authMiddleware, async (c) => {
       }
     }
 
-    // 5. 更新回测记录
+    // 5. 批量写入明细（D1 batch 一次最多支持数百条）
+    for (let i = 0; i < batchStmts.length; i += 100) {
+      await c.env.DB.batch(batchStmts.slice(i, i + 100));
+    }
+
+    // 6. 更新回测记录
     const totalBetAmount = totalPicks * 200; // 每注2元=200分
     const winRate = totalPicks > 0 ? totalWins / totalPicks : 0;
 
