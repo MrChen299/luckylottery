@@ -73,8 +73,16 @@ backtest.post('/', authMiddleware, async (c) => {
 
   const pickCount = Math.min(20, Math.max(1, rawPickCount || 5));
 
-  // 1. 获取足够多的开奖数据（覆盖从startIssue往前的所有期 + 50期用于分析）
-  const allDraws = await fetchDraws(300);
+  // 1. 根据日期范围计算需要获取的数据量（每年约150期 + 50期用于分析）
+  let neededCount = 300;
+  if (startDate) {
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : new Date();
+    const years = (end.getTime() - start.getTime()) / (365.25 * 24 * 3600 * 1000);
+    neededCount = Math.ceil(years * 150) + 50;
+  }
+  neededCount = Math.max(neededCount, 300); // 至少300条
+  const allDraws = await fetchDraws(neededCount);
   if (allDraws.length === 0) {
     return c.json({ error: '获取开奖数据失败' }, 502);
   }
