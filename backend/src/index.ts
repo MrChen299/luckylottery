@@ -3,6 +3,7 @@ import { cors } from 'hono/cors';
 import authRoutes from './routes/auth';
 import picksRoutes from './routes/picks';
 import winsRoutes from './routes/wins';
+import backtestRoutes from './routes/backtest';
 import { scheduledHandler } from './scheduled/checkWins';
 
 export type Env = {
@@ -32,6 +33,7 @@ app.get('/', (c) => c.json({ status: 'ok', name: 'luckylottery-backend' }));
 app.route('/api/auth', authRoutes);
 app.route('/api/picks', picksRoutes);
 app.route('/api/wins', winsRoutes);
+app.route('/api/backtest', backtestRoutes);
 
 // Manual trigger for win check (for testing)
 app.get('/api/admin/check-wins', async (c) => {

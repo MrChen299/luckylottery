@@ -55,3 +55,41 @@ CREATE TABLE IF NOT EXISTS processed_issues (
   issue TEXT PRIMARY KEY,
   processed_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- 回测记录表
+CREATE TABLE IF NOT EXISTS backtests (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  start_issue TEXT NOT NULL,
+  end_issue TEXT NOT NULL,
+  lucky_seed TEXT,
+  pick_count INTEGER NOT NULL DEFAULT 5,
+  total_picks INTEGER NOT NULL DEFAULT 0,
+  total_wins INTEGER NOT NULL DEFAULT 0,
+  total_prize_amount INTEGER NOT NULL DEFAULT 0,
+  total_bet_amount INTEGER NOT NULL DEFAULT 0,
+  win_rate REAL NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'completed',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 回测明细表
+CREATE TABLE IF NOT EXISTS backtest_details (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  backtest_id INTEGER NOT NULL,
+  issue TEXT NOT NULL,
+  reds TEXT NOT NULL,
+  blue INTEGER NOT NULL,
+  win_reds TEXT,
+  win_blue INTEGER,
+  red_match INTEGER NOT NULL DEFAULT 0,
+  blue_match INTEGER NOT NULL DEFAULT 0,
+  prize_level INTEGER NOT NULL DEFAULT 0,
+  prize_amount INTEGER NOT NULL DEFAULT 0,
+  FOREIGN KEY (backtest_id) REFERENCES backtests(id)
+);
+
+-- 回测表索引
+CREATE INDEX IF NOT EXISTS idx_backtests_user_id ON backtests(user_id);
+CREATE INDEX IF NOT EXISTS idx_backtest_details_backtest_id ON backtest_details(backtest_id);

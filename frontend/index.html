@@ -1263,6 +1263,144 @@ body {
   font-size: 0.78rem;
   margin-left: 8px;
 }
+/* ============ Backtest ============ */
+.backtest-form {
+  margin-top: 16px;
+}
+.backtest-form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.backtest-field {
+  flex: 1;
+}
+.backtest-field label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.backtest-field input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card-alt);
+  color: var(--text-primary);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 0.88rem;
+  outline: none;
+  transition: var(--transition);
+}
+.backtest-field input:focus {
+  border-color: var(--border-gold);
+  box-shadow: 0 0 8px rgba(212,167,69,0.12);
+}
+.backtest-field input::placeholder {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+.backtest-field .count-selector {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 40px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.backtest-field .count-btn {
+  width: 40px; height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.backtest-field .count-btn:hover { background: rgba(255,255,255,0.05); }
+.backtest-field .count-display {
+  min-width: 32px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--gold-light);
+}
+.bt-result-card {
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-top: 20px;
+}
+.bt-result-header {
+  text-align: center;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-gold);
+}
+.bt-result-header h3 {
+  font-family: 'Noto Serif SC', serif;
+  color: var(--gold-light);
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+.bt-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.bt-stat-item {
+  text-align: center;
+  padding: 12px 8px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+.bt-stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.bt-stat-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--gold-light);
+}
+.bt-stat-value.negative { color: var(--crimson-light); }
+.bt-history-item {
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.bt-history-item:hover { border-color: var(--border-gold); }
+.bt-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.bt-history-header span:first-child {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.bt-history-meta {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 16px;
+}
+@media (max-width: 640px) {
+  .backtest-form-row { flex-direction: column; gap: 10px; }
+  .bt-stats { grid-template-columns: repeat(2, 1fr); }
+}
 </style>
 </head>
 <body>
@@ -1298,6 +1436,7 @@ body {
     <button class="main-tab active" data-tab="pick" onclick="switchMainTab('pick')">智能机选</button>
     <button class="main-tab" data-tab="mypicks" onclick="switchMainTab('mypicks')">我的机选记录</button>
     <button class="main-tab" data-tab="mywins" onclick="switchMainTab('mywins')">我的中奖记录</button>
+    <button class="main-tab" data-tab="backtest" onclick="switchMainTab('backtest')">回测</button>
   </div>
 
   <!-- ===== Tab: 智能机选 ===== -->
@@ -1355,6 +1494,51 @@ body {
     <div class="section">
       <div class="section-title"><span class="dot"></span>我的中奖记录</div>
       <div id="myWinsDisplay"></div>
+    </div>
+  </div>
+
+  <!-- ===== Tab: 回测 ===== -->
+  <div class="tab-content" id="tabBacktest">
+    <!-- 回测表单 -->
+    <div class="section">
+      <div class="section-title"><span class="dot"></span>策略回测</div>
+      <div class="backtest-form">
+        <div class="backtest-form-row">
+          <div class="backtest-field">
+            <label>起始期号</label>
+            <input type="text" id="btStartIssue" placeholder="如 2026001" maxlength="7" />
+          </div>
+          <div class="backtest-field">
+            <label>结束期号</label>
+            <input type="text" id="btEndIssue" placeholder="如 2026050" maxlength="7" />
+          </div>
+        </div>
+        <div class="backtest-form-row">
+          <div class="backtest-field">
+            <label>幸运字符（可选）</label>
+            <input type="text" id="btLuckySeed" placeholder="输入幸运字符" maxlength="30" autocomplete="off" />
+          </div>
+          <div class="backtest-field">
+            <label>每期注数</label>
+            <div class="count-selector">
+              <button class="count-btn" onclick="changeBtCount(-1)">−</button>
+              <span class="count-display" id="btCountDisplay">5</span>
+              <button class="count-btn" onclick="changeBtCount(1)">+</button>
+            </div>
+          </div>
+        </div>
+        <button class="btn-generate" id="btnBacktest" onclick="runBacktest()" style="width:100%;justify-content:center;margin-top:12px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+          开始回测
+        </button>
+      </div>
+      <!-- 回测结果 -->
+      <div id="backtestResult"></div>
+    </div>
+    <!-- 历史回测 -->
+    <div class="section">
+      <div class="section-title"><span class="dot"></span>历史回测记录</div>
+      <div id="backtestHistory"></div>
     </div>
   </div>
 
@@ -1545,7 +1729,7 @@ function showSessionExpiredModal() {
 
 function switchMainTab(tab) {
   document.querySelectorAll('.main-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-  const tabIdMap = { pick: 'tabPick', mypicks: 'tabMyPicks', mywins: 'tabMyWins' };
+  const tabIdMap = { pick: 'tabPick', mypicks: 'tabMyPicks', mywins: 'tabMyWins', backtest: 'tabBacktest' };
   document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === tabIdMap[tab]));
 
   if (tab === 'mypicks') {
@@ -1556,6 +1740,7 @@ function switchMainTab(tab) {
     if (isLoggedIn()) { loadMyWins(); }
     else { showToast('请先登录后查看中奖记录'); openAuth(); }
   }
+  if (tab === 'backtest' && isLoggedIn()) loadBacktestHistory();
 }
 
 function openAuth() {
@@ -1644,6 +1829,8 @@ function logout() {
   showToast('已退出登录');
   document.getElementById('myPicksDisplay').innerHTML = '';
   document.getElementById('myWinsDisplay').innerHTML = '';
+  document.getElementById('backtestResult').innerHTML = '';
+  document.getElementById('backtestHistory').innerHTML = '';
   switchMainTab('pick');
 }
 
@@ -2380,6 +2567,230 @@ function changeWinsPageSize(size) {
   winsPageSize = Math.min(100, Math.max(1, size));
   winsPage = 1;
   loadMyWins();
+}
+
+// ============ Backtest ============
+let btPickCount = 5;
+
+function changeBtCount(delta) {
+  btPickCount = Math.max(1, Math.min(20, btPickCount + delta));
+  document.getElementById('btCountDisplay').textContent = btPickCount;
+}
+
+async function runBacktest() {
+  if (!isLoggedIn()) {
+    showToast('请先登录后再使用回测功能');
+    openAuth();
+    return;
+  }
+
+  const startIssue = document.getElementById('btStartIssue').value.trim();
+  const endIssue = document.getElementById('btEndIssue').value.trim();
+  const luckySeed = document.getElementById('btLuckySeed').value.trim();
+
+  if (!startIssue || !endIssue) {
+    showToast('请输入起止期号');
+    return;
+  }
+
+  const btn = document.getElementById('btnBacktest');
+  btn.classList.add('loading');
+  const resultDiv = document.getElementById('backtestResult');
+  resultDiv.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:20px auto;"></div><p>正在回测中，请稍候...</p></div>';
+
+  try {
+    const res = await authFetch(`${BACKEND_URL}/api/backtest`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        startIssue,
+        endIssue,
+        luckySeed: luckySeed || undefined,
+        pickCount: btPickCount,
+      }),
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      resultDiv.innerHTML = '';
+      showToast(json.error || '回测失败');
+      return;
+    }
+
+    // 渲染结果
+    const profit = json.totalPrizeAmount - json.totalBetAmount;
+    const profitClass = profit >= 0 ? '' : ' negative';
+    resultDiv.innerHTML = `
+      <div class="bt-result-card">
+        <div class="bt-result-header">
+          <h3>回测结果</h3>
+          <div style="font-size:0.82rem;color:var(--text-secondary);">${json.startIssue}期 ~ ${json.endIssue}期 · 共${json.issueCount}期 · 每期${json.pickCount}注${json.luckySeed ? ' · 🔮' + escapeHtml(json.luckySeed) : ''}</div>
+        </div>
+        <div class="bt-stats">
+          <div class="bt-stat-item">
+            <div class="bt-stat-label">胜率</div>
+            <div class="bt-stat-value">${json.winRate}</div>
+          </div>
+          <div class="bt-stat-item">
+            <div class="bt-stat-label">中奖金额</div>
+            <div class="bt-stat-value">${json.totalPrizeAmountText}</div>
+          </div>
+          <div class="bt-stat-item">
+            <div class="bt-stat-label">下注金额</div>
+            <div class="bt-stat-value">${json.totalBetAmountText}</div>
+          </div>
+          <div class="bt-stat-item">
+            <div class="bt-stat-label">总注数</div>
+            <div class="bt-stat-value">${json.totalPicks}</div>
+          </div>
+          <div class="bt-stat-item">
+            <div class="bt-stat-label">中奖注数</div>
+            <div class="bt-stat-value">${json.totalWins}</div>
+          </div>
+          <div class="bt-stat-item">
+            <div class="bt-stat-label">盈亏</div>
+            <div class="bt-stat-value${profitClass}">${profit >= 0 ? '+' : ''}${formatCents(profit)}</div>
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <button class="retry-btn" onclick="viewBacktestDetail(${json.id})" style="border-color:var(--border-gold);color:var(--gold-light);">查看详情</button>
+        </div>
+      </div>`;
+
+    showToast('回测完成！');
+    loadBacktestHistory();
+  } catch (err) {
+    resultDiv.innerHTML = '';
+    if (err.message === 'SESSION_EXPIRED') return;
+    showToast('回测失败，请稍后重试');
+  } finally {
+    btn.classList.remove('loading');
+  }
+}
+
+function formatCents(cents) {
+  if (cents >= 100) return (cents / 100).toFixed(2) + '元';
+  return cents + '分';
+}
+
+async function loadBacktestHistory() {
+  const container = document.getElementById('backtestHistory');
+  if (!isLoggedIn()) { container.innerHTML = ''; return; }
+
+  try {
+    const res = await authFetch(`${BACKEND_URL}/api/backtest?page=1&limit=20`, {
+      headers: { 'Authorization': `Bearer ${authToken}` },
+    });
+    if (res.status === 401) return;
+    const json = await res.json();
+
+    if (!json.data || json.data.length === 0) {
+      container.innerHTML = '<div class="empty-state"><p>暂无回测记录</p></div>';
+      return;
+    }
+
+    container.innerHTML = json.data.map(bt => {
+      const profit = bt.totalPrizeAmount - bt.totalBetAmount;
+      const profitText = profit >= 0 ? '+' + formatCents(profit) : formatCents(profit);
+      return `
+        <div class="bt-history-item" onclick="viewBacktestDetail(${bt.id})">
+          <div class="bt-history-header">
+            <span>${bt.startIssue}期 ~ ${bt.endIssue}期</span>
+            <span class="prize-badge level-${bt.totalWins > 0 ? '4' : '0'}">${bt.winRate}</span>
+          </div>
+          <div class="bt-history-meta">
+            <span>每期${bt.pickCount}注</span>
+            <span>中奖${bt.totalWins}/${bt.totalPicks}注</span>
+            <span>盈亏: ${profitText}</span>
+            <span>${bt.createdAt?.slice(0, 10) || ''}</span>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (err) {
+    if (err.message === 'SESSION_EXPIRED') return;
+    console.error('Load backtest history error:', err);
+  }
+}
+
+async function viewBacktestDetail(id) {
+  try {
+    const res = await authFetch(`${BACKEND_URL}/api/backtest/${id}`, {
+      headers: { 'Authorization': `Bearer ${authToken}` },
+    });
+    if (res.status === 401) return;
+    const bt = await res.json();
+
+    // 按期号分组
+    const issueGroups = {};
+    const issueOrder = [];
+    (bt.details || []).forEach(d => {
+      if (!issueGroups[d.issue]) {
+        issueGroups[d.issue] = [];
+        issueOrder.push(d.issue);
+      }
+      issueGroups[d.issue].push(d);
+    });
+
+    let html = `<div class="calc-modal-overlay" onclick="if(event.target===this)this.remove()">
+      <div class="calc-modal-content" style="max-width:560px;max-height:85vh;">
+        <div class="calc-draw-row" style="border-bottom-color:var(--border-gold);">
+          <span class="calc-draw-label">回测详情</span>
+          <span style="font-size:0.82rem;color:var(--text-secondary);">${bt.startIssue}期 ~ ${bt.endIssue}期 · 胜率${bt.winRate}</span>
+        </div>
+        <div class="bt-stats" style="margin-bottom:16px;">
+          <div class="bt-stat-item"><div class="bt-stat-label">中奖金额</div><div class="bt-stat-value">${bt.totalPrizeAmountText}</div></div>
+          <div class="bt-stat-item"><div class="bt-stat-label">下注金额</div><div class="bt-stat-value">${bt.totalBetAmountText}</div></div>
+          <div class="bt-stat-item"><div class="bt-stat-label">中奖注数</div><div class="bt-stat-value">${bt.totalWins}/${bt.totalPicks}</div></div>
+        </div>`;
+
+    issueOrder.forEach(issue => {
+      const details = issueGroups[issue];
+      const winReds = details[0]?.winReds || [];
+      const winBlue = details[0]?.winBlue || 0;
+
+      html += `<div class="issue-group">
+        <div class="issue-group-header"><span>第${issue}期</span><span style="font-size:0.78rem;color:var(--text-secondary);">开奖: `;
+      winReds.forEach(r => {
+        html += `<span class="mini-ball mini-ball-red" style="width:22px;height:22px;line-height:22px;font-size:0.68rem;">${String(r).padStart(2,'0')}</span>`;
+      });
+      html += `<span class="mini-ball mini-ball-blue" style="width:22px;height:22px;line-height:22px;font-size:0.68rem;">${String(winBlue).padStart(2,'0')}</span>`;
+      html += `</span></div>`;
+
+      details.forEach(d => {
+        if (d.prizeLevel > 0) {
+          html += `<div class="calc-result-card">`;
+          html += `<div class="calc-result-header"><span>选号</span><span class="prize-badge level-${d.prizeLevel}">${d.prizeName}</span></div>`;
+          html += `<div class="calc-result-amount">奖金：${d.prizeAmountText}</div>`;
+        } else {
+          html += `<div class="batch-card" style="padding:10px 14px;">`;
+          html += `<div class="batch-label">未中奖</div>`;
+        }
+        html += '<div class="balls-row">';
+        d.reds.forEach(r => {
+          const matched = winReds.includes(r);
+          html += `<span class="mini-ball mini-ball-red${matched ? ' ball-matched' : ''}" style="width:24px;height:24px;line-height:24px;font-size:0.7rem;">${String(r).padStart(2,'0')}</span>`;
+        });
+        html += '+';
+        const blueMatched = d.blue === winBlue;
+        html += `<span class="mini-ball mini-ball-blue${blueMatched ? ' ball-matched' : ''}" style="width:24px;height:24px;line-height:24px;font-size:0.7rem;">${String(d.blue).padStart(2,'0')}</span>`;
+        html += '</div></div>';
+      });
+      html += '</div>';
+    });
+
+    html += `<div class="calc-modal-footer"><button class="calc-close-btn" onclick="this.closest('.calc-modal-overlay').remove()">关闭</button></div>`;
+    html += '</div></div>';
+
+    const overlay = document.createElement('div');
+    overlay.innerHTML = html;
+    document.body.appendChild(overlay.firstElementChild);
+  } catch (err) {
+    if (err.message === 'SESSION_EXPIRED') return;
+    showToast('获取回测详情失败');
+  }
 }
 
 // ============ Init ============
