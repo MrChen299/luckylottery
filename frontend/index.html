@@ -2776,7 +2776,7 @@ async function viewBacktestDetail(id) {
       <div class="calc-modal-content" style="max-width:560px;max-height:85vh;">
         <div class="calc-draw-row" style="border-bottom-color:var(--border-gold);">
           <span class="calc-draw-label">回测详情</span>
-          <span style="font-size:0.82rem;color:var(--text-secondary);">${bt.startDate || (bt.startIssue + '期')} ~ ${bt.endDate || (bt.endIssue + '期')} · 胜率${bt.winRate}</span>
+          <span style="font-size:0.82rem;color:var(--text-secondary);">${bt.startDate || (bt.startIssue + '期')} ~ ${bt.endDate || (bt.endIssue + '期')} · 胜率${bt.winRate}${bt.luckySeed ? ' · 🔮' + escapeHtml(bt.luckySeed) : ''}</span>
         </div>
         <div class="bt-stats" style="margin-bottom:16px;">
           <div class="bt-stat-item"><div class="bt-stat-label">胜率</div><div class="bt-stat-value">${bt.winRate}</div></div>
